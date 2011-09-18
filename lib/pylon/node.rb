@@ -84,6 +84,9 @@ class Pylon
     def handle_command string
       command, params = JSON.parse(string)
       case command
+      when "sync_time"
+        Log.info "handle_command: sync time received, running ntpdate"
+        ["sync_time", %x{ntpdate -u pool.ntp.org}]
       when "add"
         Log.info "handle_command: add message received, params: #{params.inspect}"
       when "new_leader"
@@ -95,12 +98,15 @@ class Pylon
         Log.info "handle_command: status message received, sending node back"
         self
       when "ping"
-        Log.info "handle_command: ping requested, sending pong"
-        ["pong", Time.now.to_i]
+        timestamp = Time.now.to_i
+        Log.info "handle_command: ping requested, sending pong with timestamp: #{timestamp}"
+        ["pong", timestamp]
       when "exit"
-        Pylon::Application.fatal! "handle_command: exit command received", 1
+        error = "handle_command: exit command received"
+        error << " with message: #{params["message"]}" if params.has_key? "message"
+        Pylon::Application.fatal! error, 1
       else
-        Pylon::Application.fatal! "handle_command: unrecognized command '#{command}' (params: #{params}), exiting!", -99
+        Pylon::Application.fatal! "handle_command: unrecognized command '#{command.inspect}' (params: #{params.inspect}), exiting!", -99
       end
     end
 
@@ -129,7 +135,6 @@ class Pylon
             rep_socket.send_string handle_command(rep_socket.recv_string).to_json if rep_socket.more_parts?
           end
           sleep_after_announce = Pylon::Config[:sleep_after_announce]
-          Log.debug "#{self}: unicast announcing then sleeping #{sleep_after_announce} secs"
           Thread.pass
           sleep sleep_after_announce
         end

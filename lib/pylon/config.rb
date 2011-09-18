@@ -53,9 +53,9 @@ class Pylon
     sleep_after_announce 5
 
     # TODO: not implemented
-    ping_interval 1
-    ping_timeout 30
-    ping_retries 3
+    fd_interval 30
+    fd_timeout 30
+    fd_retries 3
 
   end
 end
