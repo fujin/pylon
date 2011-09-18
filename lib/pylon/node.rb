@@ -179,13 +179,11 @@ class Pylon
     end
 
     def self.json_create(json)
-      Log.debug "json_create: trying to create pylon::node object from json: #{json}"
       node = new(json)
       node.uuid(json["uuid"])
       node.weight json["weight"]
       node.unicast_endpoint json["unicast_endpoint"]
       node.timestamp json["timestamp"]
-      Log.debug "#{node}: created from json succesfully"
       node
     end
 
