@@ -130,7 +130,7 @@ class Pylon
           end
           sleep_after_announce = Pylon::Config[:sleep_after_announce]
           Log.debug "#{self}: unicast announcing then sleeping #{sleep_after_announce} secs"
-          #Thread.pass
+          Thread.pass
           sleep sleep_after_announce
         end
 
@@ -150,7 +150,7 @@ class Pylon
           Log.debug "#{self}: announcing then sleeping #{sleep_after_announce} secs"
           pub_socket.send_string uuid.to_s, ZMQ::SNDMORE
           pub_socket.send_string self.to_json
-          #Thread.pass
+          Thread.pass
           sleep sleep_after_announce
         end
       end

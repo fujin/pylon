@@ -94,14 +94,16 @@ class Pylon
     end
 
     def failure_detector
-      nodes.reject{|n| n == node}.map do |node|
-        Thread.new do
+      Thread.new do
+        nodes.reject{|n| n == node}.map do |node|
+          Log.info "failure_detector: starting failure detection against #{node}"
           loop do
             pong, timestamp = node.send "ping"
             if pong == "pong"
               if (timestamp - Time.now.to_i) <= 600
                 Log.debug "failure_detector: received good pong with timestamp: #{timestamp}"
               else
+                Log.warn "failure_detector: received bad timestamp from #{node}, sending 'exit' message"
                 node.send "exit", {"message" => "bad timestamp received"}
               end
             end
