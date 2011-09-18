@@ -78,17 +78,58 @@ class Pylon
       UUIDTools::UUID.timestamp_create
     end
 
+    # Expects a two element tuple containing a string command and a
+    # hash of params:
+    # ["command", :params => {}]
+    def handle_command string
+      command, params = JSON.parse(string)
+      case command
+      when "add"
+        Log.info "handle_command: add message received, params: #{params.inspect}"
+      when "new_leader"
+        Log.info "handle_command: new_leader message received"
+        new_leader = params
+        new_leader.send "add", self
+        self
+      when "status"
+        Log.info "handle_command: status message received, sending node back"
+        self
+      when "ping"
+        Log.info "handle_command: ping requested, sending pong"
+        ["pong", Time.now.to_i]
+      when "exit"
+        Pylon::Application.fatal! "handle_command: exit command received", 1
+      else
+        Pylon::Application.fatal! "handle_command: unrecognized command '#{command}' (params: #{params}), exiting!", -99
+      end
+    end
+
+    def send(command = "status", params = {})
+      Thread.new do
+        req_socket = context.socket ZMQ::REQ
+        req_socket.setsockopt ZMQ::LINGER, 0
+        req_socket.connect unicast_endpoint
+        if req_socket.send_string "command", ZMQ::SNDMORE
+          Log.debug "connect_node: sent command protocol initiator"
+          if req_socket.send_string([command, params].to_json)
+            response = JSON.parse(req_socket.recv_string)
+          end
+        end
+        response
+      end.value
+    end
+
     def unicast_announcer
       Thread.new do
         Log.debug "unicast_announcer: zeromq pub socket announcer starting up on #{unicast_endpoint}"
-        pub_socket = context.socket ZMQ::PUB
-        pub_socket.setsockopt ZMQ::IDENTITY, "node"
-        pub_socket.bind unicast_endpoint
+        rep_socket = context.socket ZMQ::REP
+        rep_socket.bind unicast_endpoint
         loop do
+          if rep_socket.recv_string == "command"
+            rep_socket.send_string handle_command(rep_socket.recv_string).to_json if rep_socket.more_parts?
+          end
           sleep_after_announce = Pylon::Config[:sleep_after_announce]
           Log.debug "#{self}: unicast announcing then sleeping #{sleep_after_announce} secs"
-          pub_socket.send_string uuid.to_s, ZMQ::SNDMORE
-          pub_socket.send_string self.to_json
           #Thread.pass
           sleep sleep_after_announce
         end
@@ -143,5 +184,7 @@ class Pylon
       Log.debug "#{node}: created from json succesfully"
       node
     end
+
   end
 end
+
