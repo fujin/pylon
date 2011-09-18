@@ -1,0 +1,147 @@
+# Author:: AJ Christensen (<aj@junglist.gen.nz>)
+# Copyright:: Copyright (c) 2011 AJ Christensen
+# License:: Apache License, Version 2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or#implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+require "uuidtools"
+require "ffi-rzmq"
+require "thread"
+require "json"
+
+class Pylon
+  class Node
+
+    attr_accessor :uuid, :weight, :timestamp, :context
+    attr_reader :unicast_endpoint, :multicast_endpoint
+
+    def initialize(json=nil)
+      @context = ZMQ::Context.new(1)
+    end
+
+    def unicast_endpoint(arg=nil)
+      if arg != nil
+        @unicast_endpoint = arg
+      else
+        @unicast_endpoint ||= "tcp://#{Pylon::Config[:tcp_address]}:#{Pylon::Config[:tcp_port]}"
+      end
+    end
+
+    def multicast_endpoint(arg=nil)
+      if arg != nil
+        @multicast_endpoint = arg
+      else
+        @multicast_endpoint ||= "epgm://#{Pylon::Config[:interface]};#{Pylon::Config[:multicast_address]}:#{Pylon::Config[:multicast_port]}"
+      end
+    end
+
+    def weight(arg=nil)
+      if arg != nil
+        @weight = arg
+      else
+        @weight ||= (srand; rand * Pylon::Config[:maximum_weight] % Pylon::Config[:maximum_weight]).to_i
+      end
+    end
+
+    def timestamp(arg=nil)
+      if arg != nil
+        @timestamp = arg
+      else
+        @timestamp ||= Time.now.to_i
+      end
+    end
+
+    include Comparable
+    def <=>(node)
+      weight <=> node.weight
+    end
+
+    def uuid(arg=nil)
+      if arg != nil
+        @uuid = UUIDTools::UUID.parse(arg)
+      else
+        @uuid ||= random_uuid
+      end
+    end
+
+    def random_uuid
+      UUIDTools::UUID.timestamp_create
+    end
+
+    def unicast_announcer
+      Thread.new do
+        Log.debug "unicast_announcer: zeromq pub socket announcer starting up on #{unicast_endpoint}"
+        pub_socket = context.socket ZMQ::PUB
+        pub_socket.setsockopt ZMQ::IDENTITY, "node"
+        pub_socket.bind unicast_endpoint
+        loop do
+          sleep_after_announce = Pylon::Config[:sleep_after_announce]
+          Log.debug "#{self}: unicast announcing then sleeping #{sleep_after_announce} secs"
+          pub_socket.send_string uuid.to_s, ZMQ::SNDMORE
+          pub_socket.send_string self.to_json
+          #Thread.pass
+          sleep sleep_after_announce
+        end
+
+      end
+    end
+
+    def multicast_announcer
+      Thread.new do
+        Log.debug "multicast_announcer: zeromq pub socket announcer starting up on #{multicast_endpoint}"
+        pub_socket = context.socket ZMQ::PUB
+        pub_socket.setsockopt ZMQ::IDENTITY, "node"
+        pub_socket.setsockopt ZMQ::RATE, 1000
+        pub_socket.setsockopt ZMQ::MCAST_LOOP, Pylon::Config[:multicast_loopback]
+        pub_socket.connect multicast_endpoint
+        loop do
+          sleep_after_announce = Pylon::Config[:sleep_after_announce]
+          Log.debug "#{self}: announcing then sleeping #{sleep_after_announce} secs"
+          pub_socket.send_string uuid.to_s, ZMQ::SNDMORE
+          pub_socket.send_string self.to_json
+          #Thread.pass
+          sleep sleep_after_announce
+        end
+      end
+    end
+
+    def to_s
+      "node[#{uuid}/#{weight}]"
+    end
+
+    def to_hash
+      {
+        "json_class" => self.class.name,
+        "uuid" => @uuid,
+        "weight" => @weight,
+        "unicast_endpoint" => @unicast_endpoint,
+        "timestamp" => Time.now.to_i
+      }
+    end
+
+    def to_json(*a)
+      to_hash.to_json(*a)
+    end
+
+    def self.json_create(json)
+      Log.debug "json_create: trying to create pylon::node object from json: #{json}"
+      node = new(json)
+      node.uuid(json["uuid"])
+      node.weight json["weight"]
+      node.unicast_endpoint json["unicast_endpoint"]
+      node.timestamp json["timestamp"]
+      Log.debug "#{node}: created from json succesfully"
+      node
+    end
+  end
+end
