@@ -4,3 +4,4 @@ Gemfile.lock
 pkg/*
 .vagrant
 .bundle
+vendor/bundle/
