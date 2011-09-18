@@ -32,7 +32,7 @@ directory "/srv/pylon/vendor/bundle" do
 end
 
 execute "bundle" do
-  command "bundle install --deployment --binstubs"
+  command "bundle install --deployment"
   cwd "/srv/pylon"
   user "vagrant"
   group "vagrant"
