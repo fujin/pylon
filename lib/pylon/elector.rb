@@ -193,12 +193,12 @@ class Pylon
           end
         end
       elsif nodes.length < Pylon::Config[:minimum_master_nodes]
-        if nodes.include? node
-          Log.info "handle_announce: skipping node #{node}, already known"
+        if nodes.include? new_node
+          Log.info "handle_announce: skipping node #{new_node}, already known"
           Log.debug "handle_announce: nodes: #{nodes}"
         else
-          Log.info "handle_announce: connecting to #{node} on endpoint: #{node.unicast_endpoint}"
-          connect_node node
+          Log.info "handle_announce: connecting to #{new_node} on endpoint: #{new_node.unicast_endpoint}"
+          connect_node new_node
         end
       end
     end
