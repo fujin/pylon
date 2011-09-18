@@ -140,6 +140,7 @@ class Pylon
             ping_node node
             allocate_master
           end
+          Thread.pass
         end
       end
     end
