@@ -18,8 +18,9 @@
 #
 
 execute "apt-get update"
-package "zeromq"
-package "build-essential"
+%w{zeromq build-essential tmux}.each do |pkg|
+  package pkg
+end
 
 execute "rsync -avu --progress --delete /vagrant/ /srv/pylon/" do
   notifies :delete, "directory[/srv/pylon/vendor/bundle]"
@@ -32,7 +33,7 @@ directory "/srv/pylon/vendor/bundle" do
 end
 
 execute "bundle" do
-  command "bundle install --deployment --binstubs"
+  command "bundle install --deployment"
   cwd "/srv/pylon"
   user "vagrant"
   group "vagrant"

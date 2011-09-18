@@ -37,7 +37,7 @@ class Pylon
       Pylon::Log.info "elector[#{cluster_name}] initialized, starting pub/sub sockets on #{multicast_endpoint} and tcp listener socket on #{node.unicast_endpoint}"
 
       Thread.abort_on_exception = true
-      
+
       scheduler = Thread.new do
         @unicast_announcer_thread = node.unicast_announcer
         @multicast_announcer_thread = node.multicast_announcer
@@ -88,12 +88,65 @@ class Pylon
     end
 
     def add_node node
-      @nodes << node unless @nodes.include? node
+      nodes << node unless nodes.include? node
+      # fire up a new failure detector
+      failure_detectors.each do |thread|
+        thread.join
+      end
+    end
+
+    def ping_node node
+      begin
+        Pylon::Config[:fd_retries].times do |attempt|
+          begin
+            Timeout::timeout(Pylon::Config[:fd_timeout]) do
+              pong, timestamp = node.send "ping", :attempt => attempt
+              if (timestamp - Time.now.to_i) >= 600
+                Log.warn "failure_detector: received bad timestamp from #{node}, sending 'exit' message"
+                node.send "exit", {"message" => "bad timestamp received after #{Pylon::Config[:fd_retries]}"}
+                nodes.delete node
+              else
+                Log.debug "failure_detector: received good pong with timestamp: #{timestamp}"
+                Thread.pass
+              end
+            end
+          rescue Timeout::Error
+            Log.warn "failure_detector: #{node} timed out, removing"
+            nodes.delete node
+          end
+        end
+      end
+    end
+
+    def assert_leadership
+      nodes.each do |node|
+        Thread.new do
+          status = node.send "status"
+          Log.info "assert_leadership: status of #{node}: #{status}"
+          sync_time = node.send "sync_time"
+          Log.info "assert_leadership: sync_time: #{sync_time}"
+        end
+      end.each do |thread|
+        thread.join
+      end if master
+    end
+
+    def failure_detectors
+      nodes.reject{|n| n == node}.map do |node|
+        Thread.new do
+          Log.info "failure_detector: starting failure detection against #{node}"
+          loop do
+            assert_leadership
+            ping_node node
+            allocate_master
+          end
+        end
+      end
     end
 
     def multicast_listener
       Thread.new do
-        Log.debug "multicast_listener: zeromq sub socket starting up on #{@multicast_endpoint}"
+        Log.debug "multicast_listener: zeromq sub socket starting up on #{multicast_endpoint}"
         sub_socket = context.socket ZMQ::SUB
         sub_socket.setsockopt ZMQ::IDENTITY, "node"
         sub_socket.setsockopt ZMQ::SUBSCRIBE, ""
@@ -109,14 +162,14 @@ class Pylon
     end
 
     def allocate_master
-      nodes.sort.each do |node|
-        Log.debug "node: #{node}"
+      nodes.sort!.each do |node|
+        Log.debug "allocate_master: node: #{node}"
       end
-      if node.uuid == nodes.sort.last.uuid
+      if node.uuid == nodes.last.uuid
         @master = true
-        Log.info "allocate_master: master allocated"
+        Log.info "allocate_master: master allocated; sending new_leader"
         nodes.each do |node|
-          connect_node node.uuid.to_s, node.unicast_endpoint
+          node.send "new_leader", node
         end
       else
         Log.info "allocate_master: someone else is the master, getting ready for work"
@@ -126,33 +179,34 @@ class Pylon
 
     def handle_announce recv_string
       Log.info "handle_announce: got string #{recv_string}"
-      node = JSON.parse(recv_string)
-      Log.info "handle_anounce: got announce from #{node}"
+      new_node = JSON.parse(recv_string)
+      Log.info "handle_anounce: got announce from #{new_node}"
       if master
-        Log.info "handle_announce: I am the master: updating #{node} of leadership status"
-        connect_node(node.uuid.to_s, node.unicast_endpoint)
+        Log.info "handle_announce: I am the master: updating #{new_node} of leadership status"
+        if node.weight > new_node.weight
+          Log.info "handle_announce: I'm bigger than you: sending new_leader to #{new_node}"
+          new_node.send "new_leader", node
+        else
+          Log.info "handle_announce: new leader, sending change_leader to all nodes"
+          nodes.each do |n|
+            n.send "change_leader", new_node
+          end
+        end
       elsif nodes.length < Pylon::Config[:minimum_master_nodes]
         if nodes.include? node
           Log.info "handle_announce: skipping node #{node}, already known"
           Log.debug "handle_announce: nodes: #{nodes}"
         else
-          Log.info "handle_announce: subscribing for #{node} on endpoint: #{node.unicast_endpoint}"
-          connect_node(node.uuid.to_s, node.unicast_endpoint)
+          Log.info "handle_announce: connecting to #{node} on endpoint: #{node.unicast_endpoint}"
+          connect_node node
         end
-      else
-        allocate_master
       end
     end
 
-    def connect_node uuid, endpoint
-      Log.debug "connect_node: subscribe socket connecting to #{endpoint}"
-      sub_socket = context.socket ZMQ::SUB
-      sub_socket.setsockopt ZMQ::IDENTITY, uuid
-      sub_socket.setsockopt ZMQ::SUBSCRIBE, uuid
-      sub_socket.connect endpoint
-      uuid = sub_socket.recv_string
-      Log.debug "connect_node: got uuid on sub socket, parsing node"
-      new_node = JSON.parse(sub_socket.recv_string) if sub_socket.more_parts?
+
+    def connect_node node
+      Log.debug "connect_node: request socket connecting to #{node}"
+      new_node = node.send "status"
       Log.debug "connect_node: node: #{new_node}"
       if nodes.include? new_node
         Log.info "connect_node: skipping node #{new_node}, already in local list, sleeping for 60 secs"
@@ -163,5 +217,6 @@ class Pylon
         add_node new_node
       end
     end
-  end
-end
+
+  end # Elector
+end # Pylon
