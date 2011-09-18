@@ -116,7 +116,6 @@ class Pylon
         req_socket.setsockopt ZMQ::LINGER, 0
         req_socket.connect unicast_endpoint
         if req_socket.send_string "command", ZMQ::SNDMORE
-          Log.debug "connect_node: sent command protocol initiator"
           if req_socket.send_string([command, params].to_json)
             response = JSON.parse(req_socket.recv_string)
           end
