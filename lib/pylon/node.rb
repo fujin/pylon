@@ -120,6 +120,7 @@ class Pylon
             response = JSON.parse(req_socket.recv_string)
           end
         end
+        req_socket.close
         response
       end.value
     end
