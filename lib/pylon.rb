@@ -15,5 +15,6 @@
 # limitations under the License.
 
 class Pylon
-  VERSION = "0.2.6"
+  PYLON_ROOT = File.dirname(File.expand_path(File.dirname(__FILE__)))
+  VERSION = "0.2.7"
 end
