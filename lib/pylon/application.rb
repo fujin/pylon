@@ -144,7 +144,7 @@ class Pylon
     :short => "-t TCPADDRESS",
     :long => "--tcp-address TCPADDRESS",
     :description => "Interface to use to bind request socket to"
-    
+
     option :tcp_port,
     :short => "-P TCPPORT",
     :long => "--tcp-port TCPPORT",
@@ -155,6 +155,12 @@ class Pylon
     :long => "--minimum-master-nodes NODES",
     :description => "How many nodes to wait for before starting master election",
     :proc => lambda { |nodes| nodes.to_i }
+
+    option :multicast,
+    :short => "-M",
+    :long => "--multicast",
+    :description => "Enable multicast support via encapuslated pragmatic general multicast",
+    :proc => lambda { |m| true }
 
   end
 end

@@ -39,13 +39,14 @@ class Pylon
       Thread.abort_on_exception = true
 
       scheduler = Thread.new do
+        if Pylon::Config[:multicast]
+          @multicast_announcer_thread = node.multicast_announcer
+          @multicast_listener_thread = multicast_listener
+          @multicast_listener_thread.join
+          @multicast_announcer_thread.join
+        end
         @unicast_announcer_thread = node.unicast_announcer
-        @multicast_announcer_thread = node.multicast_announcer
-        @multicast_listener_thread = multicast_listener
-
-        @multicast_listener_thread.join
         @unicast_announcer_thread.join
-        @multicast_announcer_thread.join
       end
       scheduler.join
 

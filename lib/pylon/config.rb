@@ -30,7 +30,7 @@ class Pylon
     umask 0022
 
     # Options for the multicast server
-    multicast true
+    multicast false
     multicast_address "225.4.5.6"
     multicast_port "13336"
     multicast_ttl 3
@@ -47,7 +47,7 @@ class Pylon
     # cluster settings
     maximum_weight 1000
     cluster_name "pylon"
-    Seed_tcp_endpoints []
+    seed_unicast_endpoints []
     master nil
     minimum_master_nodes 1
     sleep_after_announce 5
