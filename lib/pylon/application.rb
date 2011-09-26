@@ -119,6 +119,17 @@ class Pylon
     :description => "Group to set privilege to",
     :proc => nil
 
+    option :multicast,
+    :short => "-M",
+    :long => "--multicast",
+    :description => "Enable multicast support via encapuslated pragmatic general multicast",
+    :proc => lambda { |m| true }
+
+    option :multicast_interface,
+    :short => "-i INTERFACE",
+    :long => "--multicast-interface INTERFACE",
+    :description => "Interface to use to send multicast over"
+
     option :multicast_address,
     :short => "-a ADDRESS",
     :long => "--multicast-address ADDRESS",
@@ -135,11 +146,6 @@ class Pylon
     :description => "Enable multicast over loopback interfaces",
     :proc => lambda { |loop| true }
 
-    option :interface,
-    :short => "-i INTERFACE",
-    :long => "--interface INTERFACE",
-    :description => "Interface to use to send multicast over"
-
     option :tcp_address,
     :short => "-t TCPADDRESS",
     :long => "--tcp-address TCPADDRESS",
@@ -155,13 +161,6 @@ class Pylon
     :long => "--minimum-master-nodes NODES",
     :description => "How many nodes to wait for before starting master election",
     :proc => lambda { |nodes| nodes.to_i }
-
-    option :multicast,
-    :short => "-M",
-    :long => "--multicast",
-    :description => "Enable multicast support via encapuslated pragmatic general multicast",
-    :proc => lambda { |m| true }
-
   end
 end
 

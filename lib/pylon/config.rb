@@ -36,7 +36,7 @@ class Pylon
     multicast_ttl 3
     multicast_listen_address nil
     multicast_loopback false
-    interface_address "127.0.0.1"
+    multicast_interface "eth0"
 
     # TCP settings
     tcp_address "*"
@@ -57,5 +57,5 @@ class Pylon
     fd_timeout 30
     fd_retries 3
 
-  end
-end
+  end # Config
+end # Pylon

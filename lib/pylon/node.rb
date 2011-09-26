@@ -18,11 +18,13 @@ require "uuidtools"
 require "ffi-rzmq"
 require "thread"
 require "json"
+require_relative "exceptions"
+require_relative "command_handler"
 
 class Pylon
   class Node
 
-    attr_accessor :uuid, :weight, :timestamp, :context
+    attr_accessor :uuid, :weight, :timestamp, :context, :master
     attr_reader :unicast_endpoint, :multicast_endpoint
 
     def initialize(json=nil)
@@ -77,39 +79,6 @@ class Pylon
     def random_uuid
       UUIDTools::UUID.timestamp_create
     end
-
-    # Expects a two element tuple containing a string command and a
-    # hash of params:
-    # ["command", :params => {}]
-    def handle_command string
-      command, params = JSON.parse(string)
-      case command
-      when "sync_time"
-        Log.info "handle_command: sync time received, running ntpdate"
-        ["sync_time", %x{ntpdate -u pool.ntp.org}]
-      when "add"
-        Log.info "handle_command: add message received, params: #{params.inspect}"
-      when "new_leader"
-        Log.info "handle_command: new_leader message received"
-        new_leader = params
-        new_leader.send "add", self
-        self
-      when "status"
-        Log.info "handle_command: status message received, sending node back"
-        self
-      when "ping"
-        timestamp = Time.now.to_i
-        Log.info "handle_command: ping requested, sending pong with timestamp: #{timestamp}"
-        ["pong", timestamp]
-      when "exit"
-        error = "handle_command: exit command received"
-        error << " with message: #{params["message"]}" if params.has_key? "message"
-        Pylon::Application.fatal! error, 1
-      else
-        Pylon::Application.fatal! "handle_command: unrecognized command '#{command.inspect}' (params: #{params.inspect}), exiting!", -99
-      end
-    end
-
     def send(command = "status", params = {})
       Thread.new do
         req_socket = context.socket ZMQ::REQ
@@ -125,6 +94,23 @@ class Pylon
       end.value
     end
 
+    def ping
+      Timeout::timeout(Pylon::Config[:ping_timeout]) do
+        pong, timestamp = self.send "ping", :attempt => attempt
+      end
+    rescue Timeout::Error => e
+      Log.warn "ping: timeout exceeded #{Pylon::Config[:fd_timeout]}"
+      raise Pylon::Exceptions::Node::PingTimeout, e
+    else
+      time_difference = timestamp - Time.now.to_i
+      if time_difference >= 600
+        Log.warn "ping: received bad timestamp: #{timestamp}, time difference: #{time_difference}"
+        raise Pylon::Exceptions::Node::BadTimestamp, timestamp
+      else
+        Log.debug "ping: received pong with good timestamp: #{timestamp}"
+      end
+    end
+
     def unicast_announcer
       Thread.new do
         Log.debug "unicast_announcer: zeromq pub socket announcer starting up on #{unicast_endpoint}"
@@ -138,7 +124,6 @@ class Pylon
           Thread.pass
           sleep sleep_after_announce
         end
-
       end
     end
 
