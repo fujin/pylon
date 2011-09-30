@@ -16,5 +16,5 @@
 
 class Pylon
   PYLON_ROOT = File.dirname(File.expand_path(File.dirname(__FILE__)))
-  VERSION = "0.2.7"
+  VERSION = "0.2.8"
 end
