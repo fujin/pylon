@@ -18,7 +18,6 @@ class Pylon
   class Command
     class NewLeader < Command
       def run
-        # raise InvalidOptions unless options.has_key? :new_leader
         [ "ok", "new_leader" ].to_json
       end
     end

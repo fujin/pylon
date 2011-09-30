@@ -18,10 +18,9 @@ class Pylon
   class Command
     class Ping < Command
       def run
-        # for calculating if timestamp is within time bounds
-        raise InvalidOptions unless options.has_key? :timestamp
-        raise BadTimestamp unless (options[:timestamp] - Time.now.to_i) <= Pylon::Config[:max_time_drift]
-        [ "ok", :timestamp => Time.now.to_i ]
+        raise Pylon::Exceptions::Command::InvalidOptions unless options.has_key? "timestamp"
+        raise Pylon::Exceptions::Node::BadTimestamp unless (options["timestamp"] - Time.now.to_i) <= Pylon::Config[:max_time_drift]
+        [ "ok", "timestamp" => Time.now.to_i ].to_json
       end
     end
   end

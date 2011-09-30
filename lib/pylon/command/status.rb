@@ -18,9 +18,10 @@ class Pylon
   class Command
     class Status < Command
       def run
-        raise InvalidOptions unless options.has_key? :node
+        raise Pylon::Exceptions::Command::InvalidOptions unless options.has_key? :node
         options[:node]
       end
     end
   end
 end
+

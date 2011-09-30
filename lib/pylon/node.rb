@@ -89,24 +89,6 @@ class Pylon
       UUIDTools::UUID.timestamp_create
     end
 
-    def ping
-      Timeout::timeout(Pylon::Config[:ping_timeout]) do
-        pong, timestamp = self.send "ping", :attempt => attempt
-      end
-    rescue Timeout::Error => e
-      Log.warn "ping: timeout exceeded #{Pylon::Config[:fd_timeout]}"
-      raise Pylon::Exceptions::Node::PingTimeout, e
-    else
-      time_difference = timestamp - Time.now.to_i
-      if time_difference >= 600
-        Log.warn "ping: received bad timestamp: #{timestamp}, time difference: #{time_difference}"
-        raise Pylon::Exceptions::Node::BadTimestamp, timestamp
-      else
-        Log.debug "ping: received pong with good timestamp: #{timestamp}"
-      end
-    end
-
-
     def send(command = "status", options = {})
       Thread.new do
         req_socket = context.socket ZMQ::REQ
@@ -137,7 +119,7 @@ class Pylon
           if rep_socket.recv_string == "command"
             command = rep_socket.recv_string if rep_socket.more_parts?
             args = JSON.parse(rep_socket.recv_string) if rep_socket.more_parts?
-            Log.debug "unicast_announcer: handling command #{command} with args #{args}"
+            Log.debug "unicast_announcer: starting command handler for #{command} with args #{args}"
             rep_socket.send_string Pylon::Command.run(command, args)
           end
           # Sleep shouldn't be needed here, rep_socket.recv_string

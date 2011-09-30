@@ -90,7 +90,7 @@ class Pylon
         Thread.new do
           Log.info "failure_detector: starting failure detection against #{node}"
           loop do
-            node.ping
+            node.send "ping", "timestamp" => Time.now.to_i
           end
         end
       end
@@ -151,7 +151,7 @@ class Pylon
         Log.info "allocate_master: master allocated; sending new_leader (node.master: #{node.master})"
         nodes.each do |remote_node|
           remote_node.send "new_leader", :new_leader => node.to_json
-          remote_node.send "ping", :timestamp => Time.now.to_i
+          remote_node.send "ping", "timestamp" => Time.now.to_i
         end
       else
         Log.info "allocate_master: someone else is the master, getting ready for work. node.master: #{node.master}"
