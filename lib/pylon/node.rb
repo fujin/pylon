@@ -18,11 +18,13 @@ require "uuidtools"
 require "ffi-rzmq"
 require "thread"
 require "json"
+require_relative "exceptions"
+require_relative "command"
 
 class Pylon
   class Node
 
-    attr_accessor :uuid, :weight, :timestamp, :context
+    attr_accessor :uuid, :weight, :timestamp, :context, :master
     attr_reader :unicast_endpoint, :multicast_endpoint
 
     def initialize(json=nil)
@@ -41,7 +43,7 @@ class Pylon
       if arg != nil
         @multicast_endpoint = arg
       else
-        @multicast_endpoint ||= "epgm://#{Pylon::Config[:interface]};#{Pylon::Config[:multicast_address]}:#{Pylon::Config[:multicast_port]}"
+        @multicast_endpoint ||= "epgm://#{Pylon::Config[:multicast_interface]};#{Pylon::Config[:multicast_address]}:#{Pylon::Config[:multicast_port]}"
       end
     end
 
@@ -78,47 +80,39 @@ class Pylon
       UUIDTools::UUID.timestamp_create
     end
 
-    # Expects a two element tuple containing a string command and a
-    # hash of params:
-    # ["command", :params => {}]
-    def handle_command string
-      command, params = JSON.parse(string)
-      case command
-      when "sync_time"
-        Log.info "handle_command: sync time received, running ntpdate"
-        ["sync_time", %x{ntpdate -u pool.ntp.org}]
-      when "add"
-        Log.info "handle_command: add message received, params: #{params.inspect}"
-      when "new_leader"
-        Log.info "handle_command: new_leader message received"
-        new_leader = params
-        new_leader.send "add", self
-        self
-      when "status"
-        Log.info "handle_command: status message received, sending node back"
-        self
-      when "ping"
-        timestamp = Time.now.to_i
-        Log.info "handle_command: ping requested, sending pong with timestamp: #{timestamp}"
-        ["pong", timestamp]
-      when "exit"
-        error = "handle_command: exit command received"
-        error << " with message: #{params["message"]}" if params.has_key? "message"
-        Pylon::Application.fatal! error, 1
+    def ping
+      Timeout::timeout(Pylon::Config[:ping_timeout]) do
+        pong, timestamp = self.send "ping", :attempt => attempt
+      end
+    rescue Timeout::Error => e
+      Log.warn "ping: timeout exceeded #{Pylon::Config[:fd_timeout]}"
+      raise Pylon::Exceptions::Node::PingTimeout, e
+    else
+      time_difference = timestamp - Time.now.to_i
+      if time_difference >= 600
+        Log.warn "ping: received bad timestamp: #{timestamp}, time difference: #{time_difference}"
+        raise Pylon::Exceptions::Node::BadTimestamp, timestamp
       else
-        Pylon::Application.fatal! "handle_command: unrecognized command '#{command.inspect}' (params: #{params.inspect}), exiting!", -99
+        Log.debug "ping: received pong with good timestamp: #{timestamp}"
       end
     end
 
-    def send(command = "status", params = {})
+
+    def send(command = "status", options = {})
       Thread.new do
         req_socket = context.socket ZMQ::REQ
         req_socket.setsockopt ZMQ::LINGER, 0
         req_socket.connect unicast_endpoint
         if req_socket.send_string "command", ZMQ::SNDMORE
-          if req_socket.send_string([command, params].to_json)
-            response = JSON.parse(req_socket.recv_string)
-          end
+          req_socket.send_string command, ZMQ::SNDMORE
+          req_socket.send_string options.to_json
+
+          #
+          # Since the response *may* contain arbitrary Node json, we
+          # can't parse here.
+          #
+          response = req_socket.recv_string
+          Log.debug "send response: #{response.inspect}"
         end
         req_socket.close
         response
@@ -132,13 +126,15 @@ class Pylon
         rep_socket.bind unicast_endpoint
         loop do
           if rep_socket.recv_string == "command"
-            rep_socket.send_string handle_command(rep_socket.recv_string).to_json if rep_socket.more_parts?
+            command = rep_socket.recv_string if rep_socket.more_parts?
+            args = JSON.parse(rep_socket.recv_string) if rep_socket.more_parts?
+            Log.debug "unicast_announcer: handling command #{command} with args #{args}"
+            rep_socket.send_string Pylon::Command.run(command, args)
           end
-          sleep_after_announce = Pylon::Config[:sleep_after_announce]
-          Thread.pass
-          sleep sleep_after_announce
+          # Sleep shouldn't be needed here, rep_socket.recv_string
+          # should block.. right?
+          # sleep Pylon::Config[:sleep_after_announce]
         end
-
       end
     end
 
@@ -151,12 +147,8 @@ class Pylon
         pub_socket.setsockopt ZMQ::MCAST_LOOP, Pylon::Config[:multicast_loopback]
         pub_socket.connect multicast_endpoint
         loop do
-          sleep_after_announce = Pylon::Config[:sleep_after_announce]
-          Log.debug "#{self}: announcing then sleeping #{sleep_after_announce} secs"
-          pub_socket.send_string uuid.to_s, ZMQ::SNDMORE
-          pub_socket.send_string self.to_json
-          Thread.pass
-          sleep sleep_after_announce
+          pub_socket.send_string Pylon::Command.run("status", :node => self.to_json)
+          sleep Pylon::Config[:sleep_after_announce]
         end
       end
     end
@@ -180,13 +172,11 @@ class Pylon
     end
 
     def self.json_create(json)
-      Log.debug "json_create: trying to create pylon::node object from json: #{json}"
       node = new(json)
       node.uuid(json["uuid"])
       node.weight json["weight"]
       node.unicast_endpoint json["unicast_endpoint"]
       node.timestamp json["timestamp"]
-      Log.debug "#{node}: created from json succesfully"
       node
     end
 

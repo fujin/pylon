@@ -22,7 +22,7 @@ class Pylon
     extend Mixlib::Config
 
     config_file "~/.pylon.rb"
-    log_level :info
+    log_level :debug
     log_location STDOUT
     daemonize false
     user nil
@@ -30,13 +30,13 @@ class Pylon
     umask 0022
 
     # Options for the multicast server
-    multicast true
+    multicast false
     multicast_address "225.4.5.6"
     multicast_port "13336"
     multicast_ttl 3
     multicast_listen_address nil
     multicast_loopback false
-    interface_address "127.0.0.1"
+    multicast_interface "eth0"
 
     # TCP settings
     tcp_address "*"
@@ -47,7 +47,7 @@ class Pylon
     # cluster settings
     maximum_weight 1000
     cluster_name "pylon"
-    Seed_tcp_endpoints []
+    seed_unicast_endpoints []
     master nil
     minimum_master_nodes 1
     sleep_after_announce 5
@@ -57,5 +57,5 @@ class Pylon
     fd_timeout 30
     fd_retries 3
 
-  end
-end
+  end # Config
+end # Pylon

@@ -13,8 +13,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or#implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+#
 class Pylon
-  PYLON_ROOT = File.dirname(File.expand_path(File.dirname(__FILE__)))
-  VERSION = "0.2.8"
+  class Command
+    class Ping < Command
+      def run
+        # for calculating if timestamp is within time bounds
+        [ "ok", :timestamp => Time.now.to_i ]
+      end
+    end
+  end
 end

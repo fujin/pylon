@@ -1,3 +1,4 @@
+#
 # Author:: AJ Christensen (<aj@junglist.gen.nz>)
 # Copyright:: Copyright (c) 2011 AJ Christensen
 # License:: Apache License, Version 2.0
@@ -13,8 +14,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or#implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+require 'timeout'
 
 class Pylon
-  PYLON_ROOT = File.dirname(File.expand_path(File.dirname(__FILE__)))
-  VERSION = "0.2.8"
-end
+  class Exceptions
+
+    class Node
+      class PingTimeout < RuntimeError; end
+      class BadTimestamp < RuntimeError; end
+    end
+
+    class FailureDetector
+      class PingTimeout < RuntimeError; end
+    end
+
+    class Command
+      class NotFound < ArgumentError; end
+      class InvalidOptions < ArgumentError; end
+    end
+    
+  end # Exceptions
+end # Pylon

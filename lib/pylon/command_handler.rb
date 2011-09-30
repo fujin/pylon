@@ -13,8 +13,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or#implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+require_relative "log"
+require_relative "command"
 
 class Pylon
-  PYLON_ROOT = File.dirname(File.expand_path(File.dirname(__FILE__)))
-  VERSION = "0.2.8"
+  class CommandHandler
+    def initialize
+      Log.debug "command_handler: initialized"
+    end
+
+    def handle_command
+      true
+    end
+  end
 end
