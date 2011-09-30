@@ -1,3 +1,4 @@
+#
 # Author:: AJ Christensen (<aj@junglist.gen.nz>)
 # Copyright:: Copyright (c) 2011 AJ Christensen
 # License:: Apache License, Version 2.0
@@ -60,6 +61,14 @@ class Pylon
         @timestamp = arg
       else
         @timestamp ||= Time.now.to_i
+      end
+    end
+
+    def master(arg=nil)
+      if arg != nil
+        @master = arg
+      else
+        @master ||= Pylon::Config[:master]
       end
     end
 
@@ -163,7 +172,8 @@ class Pylon
         "uuid" => @uuid,
         "weight" => @weight,
         "unicast_endpoint" => @unicast_endpoint,
-        "timestamp" => Time.now.to_i
+        "timestamp" => Time.now.to_i,
+        "master" => @master
       }
     end
 
@@ -177,6 +187,7 @@ class Pylon
       node.weight json["weight"]
       node.unicast_endpoint json["unicast_endpoint"]
       node.timestamp json["timestamp"]
+      node.master json["master"]
       node
     end
 

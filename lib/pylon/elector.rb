@@ -32,7 +32,6 @@ class Pylon
 
       @node = Pylon::Node.new
       @nodes = Array(@node)
-      node.master = Pylon::Config[:master]
 
       Pylon::Log.info "#{node} initialized, starting elector"
       Pylon::Log.info "elector[#{cluster_name}] initialized, starting pub/sub sockets on #{multicast_endpoint} and tcp listener socket on #{node.unicast_endpoint}"
@@ -147,14 +146,14 @@ class Pylon
         Log.debug "allocate_master: node: #{node}"
       end
       if node.uuid == nodes.last.uuid
-        node.master = true
+        node.master(true)
         Log.info "allocate_master: master allocated; sending new_leader"
         nodes.each do |remote_node|
           remote_node.send "new_leader", :new_leader => node
         end
       else
         Log.info "allocate_master: someone else is the master, getting ready for work"
-        node.master = false
+        node.master(false)
       end
     end
 
