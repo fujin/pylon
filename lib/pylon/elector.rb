@@ -147,15 +147,19 @@ class Pylon
       end
       if node.uuid == nodes.last.uuid
         node.master(true)
-        Log.info "allocate_master: master allocated; sending new_leader"
+        node.master = true
+        Log.info "allocate_master: master allocated; sending new_leader (node.master: #{node.master})"
         nodes.each do |remote_node|
-          remote_node.send "new_leader", :new_leader => node
+          remote_node.send "new_leader", :new_leader => node.to_json
+          remote_node.send "ping", :timestamp => Time.now.to_i
         end
       else
-        Log.info "allocate_master: someone else is the master, getting ready for work"
+        Log.info "allocate_master: someone else is the master, getting ready for work. node.master: #{node.master}"
         node.master(false)
+        node.master = false
       end
     end
+
 
     def handle_announce recv_string = ""
       return false if recv_string.empty?

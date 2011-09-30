@@ -41,7 +41,7 @@ class Pylon
       @config = Hash.new
 
       klass_options = self.class.options
-      klass_options.keys.inject(@options) { |memo,key| memo[key] = klass_options[key].dup; memo }
+      klass_options.keys.inject(@options) { |memo,key| memo[key] = klass_options[key].freeze; memo }
 
       @options.each do |config_key, config_opts|
         config[config_key] = config_opts

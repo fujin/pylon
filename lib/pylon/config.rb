@@ -51,6 +51,8 @@ class Pylon
     master nil
     minimum_master_nodes 1
     sleep_after_announce 5
+    # 600 seconds time drift
+    max_time_drift 600
 
     # TODO: not implemented
     fd_interval 30

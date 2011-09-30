@@ -156,7 +156,8 @@ class Pylon
         pub_socket.setsockopt ZMQ::MCAST_LOOP, Pylon::Config[:multicast_loopback]
         pub_socket.connect multicast_endpoint
         loop do
-          pub_socket.send_string Pylon::Command.run("status", :node => self.to_json)
+          node_json = self.to_json
+          pub_socket.send_string Pylon::Command.run("status", :node => node_json)
           sleep Pylon::Config[:sleep_after_announce]
         end
       end
