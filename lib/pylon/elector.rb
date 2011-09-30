@@ -33,7 +33,8 @@ class Pylon
       @node = Pylon::Node.new
       @nodes = Array(@node)
       node.master = Pylon::Config[:master]
-      
+
+      Pylon::Log.info "#{node} initialized, starting elector"
       Pylon::Log.info "elector[#{cluster_name}] initialized, starting pub/sub sockets on #{multicast_endpoint} and tcp listener socket on #{node.unicast_endpoint}"
 
       Thread.abort_on_exception = true
@@ -104,6 +105,7 @@ class Pylon
     
     def add_node node
       nodes << node unless nodes.include? node
+      allocate_master
       # refresh_failure_detectors
     end
 
@@ -135,9 +137,7 @@ class Pylon
         sub_socket.setsockopt ZMQ::MCAST_LOOP, Pylon::Config[:multicast_loopback]
         sub_socket.connect multicast_endpoint
         loop do
-          uuid = sub_socket.recv_string
-          Log.debug "multicast_listener: handling announce from #{uuid}"
-          handle_announce sub_socket.recv_string if sub_socket.more_parts?
+          handle_announce sub_socket.recv_string
         end
       end
     end
@@ -149,8 +149,8 @@ class Pylon
       if node.uuid == nodes.last.uuid
         node.master = true
         Log.info "allocate_master: master allocated; sending new_leader"
-        nodes.each do |node|
-          node.send "new_leader", node
+        nodes.each do |remote_node|
+          remote_node.send "new_leader", :new_leader => node
         end
       else
         Log.info "allocate_master: someone else is the master, getting ready for work"
@@ -158,7 +158,9 @@ class Pylon
       end
     end
 
-    def handle_announce recv_string
+    def handle_announce recv_string = ""
+      return false if recv_string.empty?
+      
       Log.info "handle_announce: got string #{recv_string}"
       new_node = JSON.parse(recv_string)
       Log.info "handle_anounce: got announce from #{new_node}"
@@ -166,11 +168,11 @@ class Pylon
         Log.info "handle_announce: I am the master: updating #{new_node} of leadership status"
         if node.weight > new_node.weight
           Log.info "handle_announce: I'm bigger than you: sending new_leader to #{new_node}"
-          new_node.send "new_leader", node
+          new_node.send "new_leader", :new_leader => node
         else
           Log.info "handle_announce: new leader, sending change_leader to all nodes"
           nodes.each do |n|
-            n.send "change_leader", new_node
+            n.send "change_leader", :new_leader => node
           end
         end
       elsif nodes.length < Pylon::Config[:minimum_master_nodes]
@@ -186,7 +188,8 @@ class Pylon
 
     def connect_node node
       Log.debug "connect_node: request socket connecting to #{node}"
-      new_node = node.send "status"
+      # parse a fresh node out of the status
+      new_node = JSON.parse(node.send "status")
       Log.debug "connect_node: node: #{new_node}"
       if nodes.include? new_node
         Log.info "connect_node: skipping node #{new_node}, already in local list, sleeping for 60 secs"

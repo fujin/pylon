@@ -19,7 +19,7 @@ require "ffi-rzmq"
 require "thread"
 require "json"
 require_relative "exceptions"
-require_relative "command_handler"
+require_relative "command"
 
 class Pylon
   class Node
@@ -43,7 +43,7 @@ class Pylon
       if arg != nil
         @multicast_endpoint = arg
       else
-        @multicast_endpoint ||= "epgm://#{Pylon::Config[:interface]};#{Pylon::Config[:multicast_address]}:#{Pylon::Config[:multicast_port]}"
+        @multicast_endpoint ||= "epgm://#{Pylon::Config[:multicast_interface]};#{Pylon::Config[:multicast_address]}:#{Pylon::Config[:multicast_port]}"
       end
     end
 
@@ -79,20 +79,6 @@ class Pylon
     def random_uuid
       UUIDTools::UUID.timestamp_create
     end
-    def send(command = "status", params = {})
-      Thread.new do
-        req_socket = context.socket ZMQ::REQ
-        req_socket.setsockopt ZMQ::LINGER, 0
-        req_socket.connect unicast_endpoint
-        if req_socket.send_string "command", ZMQ::SNDMORE
-          if req_socket.send_string([command, params].to_json)
-            response = JSON.parse(req_socket.recv_string)
-          end
-        end
-        req_socket.close
-        response
-      end.value
-    end
 
     def ping
       Timeout::timeout(Pylon::Config[:ping_timeout]) do
@@ -111,6 +97,28 @@ class Pylon
       end
     end
 
+
+    def send(command = "status", options = {})
+      Thread.new do
+        req_socket = context.socket ZMQ::REQ
+        req_socket.setsockopt ZMQ::LINGER, 0
+        req_socket.connect unicast_endpoint
+        if req_socket.send_string "command", ZMQ::SNDMORE
+          req_socket.send_string command, ZMQ::SNDMORE
+          req_socket.send_string options.to_json
+
+          #
+          # Since the response *may* contain arbitrary Node json, we
+          # can't parse here.
+          #
+          response = req_socket.recv_string
+          Log.debug "send response: #{response.inspect}"
+        end
+        req_socket.close
+        response
+      end.value
+    end
+
     def unicast_announcer
       Thread.new do
         Log.debug "unicast_announcer: zeromq pub socket announcer starting up on #{unicast_endpoint}"
@@ -118,11 +126,14 @@ class Pylon
         rep_socket.bind unicast_endpoint
         loop do
           if rep_socket.recv_string == "command"
-            rep_socket.send_string handle_command(rep_socket.recv_string).to_json if rep_socket.more_parts?
+            command = rep_socket.recv_string if rep_socket.more_parts?
+            args = JSON.parse(rep_socket.recv_string) if rep_socket.more_parts?
+            Log.debug "unicast_announcer: handling command #{command} with args #{args}"
+            rep_socket.send_string Pylon::Command.run(command, args)
           end
-          sleep_after_announce = Pylon::Config[:sleep_after_announce]
-          Thread.pass
-          sleep sleep_after_announce
+          # Sleep shouldn't be needed here, rep_socket.recv_string
+          # should block.. right?
+          # sleep Pylon::Config[:sleep_after_announce]
         end
       end
     end
@@ -136,12 +147,8 @@ class Pylon
         pub_socket.setsockopt ZMQ::MCAST_LOOP, Pylon::Config[:multicast_loopback]
         pub_socket.connect multicast_endpoint
         loop do
-          sleep_after_announce = Pylon::Config[:sleep_after_announce]
-          Log.debug "#{self}: announcing then sleeping #{sleep_after_announce} secs"
-          pub_socket.send_string uuid.to_s, ZMQ::SNDMORE
-          pub_socket.send_string self.to_json
-          Thread.pass
-          sleep sleep_after_announce
+          pub_socket.send_string Pylon::Command.run("status", :node => self.to_json)
+          sleep Pylon::Config[:sleep_after_announce]
         end
       end
     end

@@ -24,6 +24,32 @@ class Pylon
 
     extend Pylon::Mixin::ConvertToClassName
 
+    attr_accessor :options, :config
+
+    def self.options
+      @options ||= {}
+      @options
+    end
+
+    def self.options=(val)
+      raise(ArgumentError, "Options must recieve a hash") unless val.kind_of?(Hash)
+      @options = val
+    end
+
+    def initialize(*args)
+      @options = Hash.new
+      @config = Hash.new
+
+      klass_options = self.class.options
+      klass_options.keys.inject(@options) { |memo,key| memo[key] = klass_options[key].dup; memo }
+
+      @options.each do |config_key, config_opts|
+        config[config_key] = config_opts
+      end
+
+      super(*args)
+    end
+
     def self.inherited(subclass)
       unless subclass.unnamed?
         commands[subclass.snake_case_name] = subclass
@@ -74,9 +100,11 @@ class Pylon
       end
     end
 
-    def self.run(command)
+    def self.run(command, options={})
+      Log.warn "command: options is not a hash" unless options.is_a? Hash
       load_commands
       command_class = command_class_from(command)
+      command_class.options = options.merge!(command_class.options) if options.respond_to? :merge! # just in case 
       instance = command_class.new(command)
       instance.run
     end
@@ -96,6 +124,7 @@ class Pylon
     end
 
     def self.command_not_found!(args)
+      Log.debug "command not found: #{args.inspect}"
       raise Pylon::Exceptions::Command::NotFound, args
     end
 

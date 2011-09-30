@@ -16,10 +16,10 @@
 #
 class Pylon
   class Command
-    class Status < Command
+    class Ping < Command
       def run
-        raise InvalidOptions unless options.has_key? :node
-        options[:node]
+        # for calculating if timestamp is within time bounds
+        [ "ok", :timestamp => Time.now.to_i ]
       end
     end
   end

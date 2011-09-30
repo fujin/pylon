@@ -31,6 +31,7 @@ class Pylon
 
     class Command
       class NotFound < ArgumentError; end
+      class InvalidOptions < ArgumentError; end
     end
     
   end # Exceptions
