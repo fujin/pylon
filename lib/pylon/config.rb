@@ -22,7 +22,7 @@ class Pylon
     extend Mixlib::Config
 
     config_file "~/.pylon.rb"
-    log_level :info
+    log_level :debug
     log_location STDOUT
     daemonize false
     user nil

@@ -1,4 +1,3 @@
-#
 # Author:: AJ Christensen (<aj@junglist.gen.nz>)
 # Copyright:: Copyright (c) 2011 AJ Christensen
 # License:: Apache License, Version 2.0
@@ -15,23 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'timeout'
-
 class Pylon
-  class Exceptions
-
-    class Node
-      class PingTimeout < RuntimeError; end
-      class BadTimestamp < RuntimeError; end
+  class Command
+    class Status < Command
+      def run
+        Log.info "#{self}: ran status command handler"
+      end
     end
-
-    class FailureDetector
-      class PingTimeout < RuntimeError; end
-    end
-
-    class Command
-      class NotFound < ArgumentError; end
-    end
-    
-  end # Exceptions
-end # Pylon
+  end
+end
