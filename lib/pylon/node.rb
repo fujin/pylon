@@ -122,9 +122,6 @@ class Pylon
             Log.debug "unicast_announcer: starting command handler for #{command} with args #{args}"
             rep_socket.send_string Pylon::Command.run(command, args)
           end
-          # Sleep shouldn't be needed here, rep_socket.recv_string
-          # should block.. right?
-          # sleep Pylon::Config[:sleep_after_announce]
         end
       end
     end
@@ -139,6 +136,7 @@ class Pylon
         pub_socket.connect multicast_endpoint
         loop do
           node_json = self.to_json
+          Log.debug "multicast_announcer: announcing node status then sleeping #{Pylon::Config[:sleep_after_announce]}"
           pub_socket.send_string Pylon::Command.run("status", :node => node_json)
           sleep Pylon::Config[:sleep_after_announce]
         end

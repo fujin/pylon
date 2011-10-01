@@ -166,7 +166,7 @@ class Pylon
       
       Log.info "handle_announce: got string #{recv_string}"
       new_node = JSON.parse(recv_string)
-      Log.info "handle_anounce: got announce from #{new_node}"
+      Log.info "handle_announce: got announce from #{new_node}"
       if node.master
         Log.info "handle_announce: I am the master: updating #{new_node} of leadership status"
         if node.weight > new_node.weight
@@ -174,8 +174,8 @@ class Pylon
           new_node.send "new_leader", :new_leader => node
         else
           Log.info "handle_announce: new leader, sending change_leader to all nodes"
-          nodes.each do |n|
-            n.send "change_leader", :new_leader => node
+          nodes.each do |remote_node|
+            remote_node.send "change_leader", :new_leader => node
           end
         end
       elsif nodes.length < Pylon::Config[:minimum_master_nodes]
