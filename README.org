@@ -1,3 +1,0 @@
-* Pylon
-  A library designed to allow you to perform simple master election
-  while knowing little about your peers, for use with Chef
