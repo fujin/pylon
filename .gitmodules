@@ -1,0 +1,3 @@
+[submodule "zeromq"]
+	path = zeromq
+	url = https://github.com/zeromq/zeromq2-1

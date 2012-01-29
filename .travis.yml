@@ -6,4 +6,4 @@ rvm:
         - jruby-18mode
         - jruby-19mode
         - rbx-mode
-script: bundle exec rake test
+script: bundle exec rake
