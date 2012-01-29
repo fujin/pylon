@@ -26,6 +26,18 @@ class Pylon
 
     attr_accessor :options, :config
 
+    def initialize
+      @options = Hash.new
+      @config = Hash.new
+
+      klass_options = self.class.options
+      klass_options.keys.inject(@options) { |memo,key| memo[key] = klass_options[key].freeze; memo }
+
+      @options.each do |config_key, config_opts|
+        config[config_key] = config_opts
+      end
+    end
+
     class << self
       def options
         @options ||= {}
@@ -37,19 +49,6 @@ class Pylon
         @options = val
       end
 
-      def initialize(*args)
-        @options = Hash.new
-        @config = Hash.new
-
-        klass_options = self.class.options
-        klass_options.keys.inject(@options) { |memo,key| memo[key] = klass_options[key].freeze; memo }
-
-        @options.each do |config_key, config_opts|
-          config[config_key] = config_opts
-        end
-
-        super(*args)
-      end
 
       def inherited(subclass)
         unless subclass.unnamed?
@@ -105,8 +104,10 @@ class Pylon
         Log.warn "command: options is not a hash" unless options.is_a? Hash
         load_commands
         command_class = command_class_from(command)
+        Log.debug "command: #{command_class}"
         command_class.options = options.merge!(command_class.options) if options.respond_to? :merge! # just in case
-        instance = command_class.new(command)
+        Log.debug "command: options: #{command_class.options}"
+        instance = command_class.new
         instance.run
       end
 
