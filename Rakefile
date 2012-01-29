@@ -15,7 +15,7 @@ require "bundler/gem_tasks"
 
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
-  test.pattern = 'test/**/test_*.rb'
+  test.pattern = "spec/**/*_spec.rb"
   test.verbose = true
 end
 
