@@ -54,7 +54,7 @@ class Pylon
       Pylon::Daemon.change_privilege
       Pylon::Daemon.daemonize "pylon" if Pylon::Config[:daemonize]
 
-      elector = Pylon::Elector.new
+      Pylon::Elector.new
     end
 
     def initialize
@@ -163,4 +163,3 @@ class Pylon
     :proc => lambda { |nodes| nodes.to_i }
   end
 end
-

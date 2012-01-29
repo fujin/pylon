@@ -81,11 +81,11 @@ class Pylon
       if arg != nil
         @uuid = UUIDTools::UUID.parse(arg)
       else
-        @uuid ||= random_uuid
+        @uuid ||= timestamp_uuid
       end
     end
 
-    def random_uuid
+    def timestamp_uuid
       UUIDTools::UUID.timestamp_create
     end
 
