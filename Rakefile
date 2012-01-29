@@ -10,13 +10,12 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 require "rake"
-require "rake/testtask"
 require "bundler/gem_tasks"
+require "rspec/core/rake_task"
 
-Rake::TestTask.new(:test) do |test|
-  test.libs << 'lib' << 'test'
-  test.pattern = "spec/**/*_spec.rb"
-  test.verbose = true
+desc "run specs"
+RSpec::Core::RakeTask.new(:spec) do |spec|
+  spec.verbose = true
 end
 
-task :default => %w[test]
+task :default => %w[spec]
