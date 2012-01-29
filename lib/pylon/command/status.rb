@@ -1,5 +1,5 @@
 # Author:: AJ Christensen (<aj@junglist.gen.nz>)
-# Copyright:: Copyright (c) 2011 AJ Christensen
+# Copyright:: Copyright (c) 2012 AJ Christensen
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

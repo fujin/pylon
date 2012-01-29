@@ -1,14 +1,14 @@
 #
 # Author:: AJ Christensen (<aj@junglist.gen.nz>)
-# Copyright:: Copyright (c) 2011 AJ Christensen
+# Copyright:: Copyright (c) 2012 AJ Christensen
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,13 @@
 #
 require "etc"
 require_relative "application"
-require_relative "config" 
- 
+require_relative "config"
+
 class Pylon
   class Daemon
     class << self
       attr_accessor :name
- 
+
       # Daemonize the current process, managing pidfiles and process uid/gid
       #
       # === Parameters
@@ -53,7 +53,7 @@ class Pylon
           Pylon::Application.fatal!("Pylon is already running pid #{pid}")
         end
       end
-   
+
       # Check if Pylon is running based on the pid_file
       # ==== Returns
       # Boolean::
@@ -72,15 +72,15 @@ class Pylon
       rescue Errno::EACCES => e
         Pylon::Application.fatal!("You don't have access to the PID file at #{pid_file}: #{e.message}")
       end
-       
+
       # Gets the pid file for @name
       # ==== Returns
       # String::
       #   Location of the pid file for @name
       def pid_file
-         Pylon::Config[:pid_file] or "/tmp/#{@name}.pid"
+        Pylon::Config[:pid_file] or "/tmp/#{@name}.pid"
       end
-       
+
       # Suck the pid out of pid_file
       # ==== Returns
       # Integer::
@@ -93,7 +93,7 @@ class Pylon
       rescue Errno::ENOENT, Errno::EACCES
         nil
       end
-     
+
       # Store the PID on the filesystem
       # This uses the Pylon::Config[:pid_file] option, or "/tmp/name.pid" otherwise
       #
@@ -104,24 +104,24 @@ class Pylon
         rescue Errno::EACCES => e
           Pylon::Application.fatal!("Failed store pid in #{File.dirname(file)}, permission denied: #{e.message}")
         end
-       
+
         begin
           File.open(file, "w") { |f| f.write(Process.pid.to_s) }
         rescue Errno::EACCES => e
           Pylon::Application.fatal!("Couldn't write to pidfile #{file}, permission denied: #{e.message}")
         end
       end
-     
+
       # Delete the PID from the filesystem
       def remove_pid_file
         FileUtils.rm(pid_file) if File.exists?(pid_file)
       end
-            
+
       # Change process user/group to those specified in Pylon::Config
       #
       def change_privilege
         Dir.chdir("/")
- 
+
         if Pylon::Config[:user] and Pylon::Config[:group]
           Pylon::Log.info("About to change privilege to #{Pylon::Config[:user]}:#{Pylon::Config[:group]}")
           _change_privilege(Pylon::Config[:user], Pylon::Config[:group])
@@ -130,7 +130,7 @@ class Pylon
           _change_privilege(Pylon::Config[:user])
         end
       end
-     
+
       # Change privileges of the process to be the specified user and group
       #
       # ==== Parameters
@@ -142,21 +142,21 @@ class Pylon
       #
       def _change_privilege(user, group=user)
         uid, gid = Process.euid, Process.egid
- 
+
         begin
           target_uid = Etc.getpwnam(user).uid
         rescue ArgumentError => e
           Pylon::Application.fatal!("Failed to get UID for user #{user}, does it exist? #{e.message}")
           return false
         end
-    
+
         begin
           target_gid = Etc.getgrnam(group).gid
         rescue ArgumentError => e
           Pylon::Application.fatal!("Failed to get GID for group #{group}, does it exist? #{e.message}")
           return false
         end
-       
+
         if (uid != target_uid) or (gid != target_gid)
           Process.initgroups(user, target_gid)
           Process::GID.change_privilege(target_gid)
