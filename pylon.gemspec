@@ -45,7 +45,8 @@ Gem::Specification.new do |s|
         "mixlib-cli" => ">= 0",
         "mixlib-config" => ">= 0",
         "uuidtools" => "~> 2.1.2",
-        "json" => ">= 0"
+        "json" => ">= 0",
+        "dcell" => "~> 0.8.0"
       }.each do |gem, version|
         s.add_runtime_dependency(gem, [version])
       end
