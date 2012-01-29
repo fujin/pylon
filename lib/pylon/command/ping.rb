@@ -20,7 +20,9 @@ class Pylon
       def run
         raise Pylon::Exceptions::Command::InvalidOptions unless options.has_key? "timestamp"
         raise Pylon::Exceptions::Node::BadTimestamp unless (options["timestamp"] - Time.now.to_i) <= Pylon::Config[:max_time_drift]
-        [ "ok", "timestamp" => Time.now.to_i ].to_json
+        [
+         "ok", { "timestamp" => Time.now.to_i }
+        ].to_json
       end
     end
   end
