@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 #
-# ./chef-client - Run the chef client
+# ./pylon
 #
 # Author:: AJ Christensen (<aj@junglist.gen.nz>)
-# Copyright:: Copyright (c) 2011 AJ Christensen
+# Copyright:: Copyright (c) 2012 AJ Christensen
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or#implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-require "rubygems"
-require "bundler/setup"
+
+require "rubygems" unless RUBY_PLATFORM =~ /1.9/
+
+lib = File.expand_path('../../lib', __FILE__)
+$:.unshift(lib) unless $:.include?(lib)
+
 require_relative "../lib/pylon"
 require_relative "../lib/pylon/application"
 
