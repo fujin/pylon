@@ -11,8 +11,10 @@ end
 
 require "rspec"
 
-require "simplecov"
-SimpleCov.start
+if RUBY_VERSION =~ /1.9/
+  require "simplecov"
+  SimpleCov.start
+end
+
 
 require_relative "../lib/pylon"
-
