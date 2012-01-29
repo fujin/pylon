@@ -1,5 +1,5 @@
 # Author:: AJ Christensen (<aj@junglist.gen.nz>)
-# Copyright:: Copyright (c) 2011 AJ Christensen
+# Copyright:: Copyright (c) 2012 AJ Christensen
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,108 +26,109 @@ class Pylon
 
     attr_accessor :options, :config
 
-    def self.options
-      @options ||= {}
-      @options
-    end
-
-    def self.options=(val)
-      raise(ArgumentError, "Options must recieve a hash") unless val.kind_of?(Hash)
-      @options = val
-    end
-
-    def initialize(*args)
-      @options = Hash.new
-      @config = Hash.new
-
-      klass_options = self.class.options
-      klass_options.keys.inject(@options) { |memo,key| memo[key] = klass_options[key].freeze; memo }
-
-      @options.each do |config_key, config_opts|
-        config[config_key] = config_opts
+    class << self
+      def options
+        @options ||= {}
+        @options
       end
 
-      super(*args)
-    end
-
-    def self.inherited(subclass)
-      unless subclass.unnamed?
-        commands[subclass.snake_case_name] = subclass
+      def options=(val)
+        raise(ArgumentError, "Options must recieve a hash") unless val.kind_of?(Hash)
+        @options = val
       end
-    end
 
-    def self.commands
-      @@commands ||= {}
-    end
+      def initialize(*args)
+        @options = Hash.new
+        @config = Hash.new
 
-    def self.unnamed?
-      name.nil? or name.empty?
-    end
+        klass_options = self.class.options
+        klass_options.keys.inject(@options) { |memo,key| memo[key] = klass_options[key].freeze; memo }
 
-    def self.snake_case_name
-      convert_to_snake_case(name.split('::').last) unless unnamed?
-    end
+        @options.each do |config_key, config_opts|
+          config[config_key] = config_opts
+        end
 
-    def self.common_name
-      snake_case_name.split('_').join(' ')
-    end
-
-    def self.load_commands
-      command_files.each do |file|
-        Kernel.load file
+        super(*args)
       end
-      true
-    end
 
-    def self.command_files
-      @@command_files ||= find_commands.values.flatten.uniq
-    end
-
-    def self.find_commands
-      files = Dir[File.expand_path('../command/*.rb', __FILE__)]
-      command_files = {}
-      files.each do |command_file|
-        rel_path = command_file[/#{Pylon::PYLON_ROOT}#{Regexp.escape(File::SEPARATOR)}(.*)\.rb/,1]
-        command_files[rel_path] = command_file
-      end
-      command_files
-    end
-
-    def self.list_commands
-      load_commands
-      commands.each do |command|
-        Log.info "command loaded: #{command}"
-      end
-    end
-
-    def self.run(command, options={})
-      Log.warn "command: options is not a hash" unless options.is_a? Hash
-      load_commands
-      command_class = command_class_from(command)
-      command_class.options = options.merge!(command_class.options) if options.respond_to? :merge! # just in case 
-      instance = command_class.new(command)
-      instance.run
-    end
-
-    def self.command_class_from(args)
-      args = [args].flatten
-      command_words = args.select {|arg| arg =~ /^(([[:alnum:]])[[:alnum:]\_\-]+)$/ }
-      command_class = nil
-      while ( !command_class ) && ( !command_words.empty? )
-        snake_case_class_name = command_words.join("_")
-        unless command_class = commands[snake_case_class_name]
-          command_words.pop
+      def inherited(subclass)
+        unless subclass.unnamed?
+          commands[subclass.snake_case_name] = subclass
         end
       end
-      command_class ||= commands[args.first.gsub('-', '_')]
-      command_class || command_not_found!(args)
-    end
 
-    def self.command_not_found!(args)
-      Log.debug "command not found: #{args.inspect}"
-      raise Pylon::Exceptions::Command::NotFound, args
-    end
+      def commands
+        @@commands ||= {}
+      end
 
+      def unnamed?
+        name.nil? or name.empty?
+      end
+
+      def snake_case_name
+        convert_to_snake_case(name.split('::').last) unless unnamed?
+      end
+
+      def common_name
+        snake_case_name.split('_').join(' ')
+      end
+
+      def load_commands
+        command_files.each do |file|
+          Kernel.load file
+        end
+        true
+      end
+
+      def command_files
+        @@command_files ||= find_commands.values.flatten.uniq
+      end
+
+      def find_commands
+        files = Dir[File.expand_path('../command/*.rb', __FILE__)]
+        command_files = {}
+        files.each do |command_file|
+          rel_path = command_file[/#{Pylon::PYLON_ROOT}#{Regexp.escape(File::SEPARATOR)}(.*)\.rb/,1]
+          command_files[rel_path] = command_file
+        end
+        command_files
+      end
+
+      def list_commands
+        load_commands
+        commands.each do |command|
+          Log.info "command loaded: #{command}"
+        end
+      end
+
+      def run(command, options={})
+        Log.warn "command: options is not a hash" unless options.is_a? Hash
+        load_commands
+        command_class = command_class_from(command)
+        command_class.options = options.merge!(command_class.options) if options.respond_to? :merge! # just in case
+        instance = command_class.new(command)
+        instance.run
+      end
+
+      def command_class_from(args)
+        args = [args].flatten
+        command_words = args.select {|arg| arg =~ /^(([[:alnum:]])[[:alnum:]\_\-]+)$/ }
+        command_class = nil
+        while ( !command_class ) && ( !command_words.empty? )
+          snake_case_class_name = command_words.join("_")
+          unless command_class = commands[snake_case_class_name]
+            command_words.pop
+          end
+        end
+        command_class ||= commands[args.first.gsub('-', '_')]
+        command_class || command_not_found!(args)
+      end
+
+      def command_not_found!(args)
+        Log.debug "command not found: #{args.inspect}"
+        raise Pylon::Exceptions::Command::NotFound, args
+      end
+
+    end # self
   end # Command
 end # Pylon
-
