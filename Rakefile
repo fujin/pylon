@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require "rubygems"
+require "rubygems" unless RUBY_VERSION =~ /1.9/
 require "bundler"
 begin
   Bundler.setup(:default, :development)
