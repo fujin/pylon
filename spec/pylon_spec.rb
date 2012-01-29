@@ -9,3 +9,10 @@ describe Pylon do
     Pylon::VERSION.wont_be_nil
   end
 end
+
+describe Kernel do
+  it "should respond to require_relative (even on 1.8)" do
+    Kernel.must_respond_to :require_relative
+  end
+end
+

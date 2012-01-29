@@ -18,3 +18,11 @@ class Pylon
   PYLON_ROOT = File.dirname(File.expand_path(File.dirname(__FILE__)))
   VERSION = "0.2.8"
 end
+
+unless Kernel.respond_to?(:require_relative)
+  module Kernel
+    def require_relative(path)
+      require File.join(File.dirname(caller[0]), path.to_str)
+    end
+  end
+end
