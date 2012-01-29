@@ -104,9 +104,7 @@ class Pylon
         Log.warn "command: options is not a hash" unless options.is_a? Hash
         load_commands
         command_class = command_class_from(command)
-        Log.debug "command: #{command_class}"
         command_class.options = options.merge!(command_class.options) if options.respond_to? :merge! # just in case
-        Log.debug "command: options: #{command_class.options}"
         instance = command_class.new
         instance.run
       end
