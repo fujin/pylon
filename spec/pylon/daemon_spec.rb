@@ -108,7 +108,11 @@ describe Pylon::Daemon do
 
     before do
       Pylon::Config[:pid_file] = "/var/run/chef/chef-client.pid"
+      Pylon::Application.expects(:fatal!).returns(true).at_least(0)
+      @f_mock = stub(:print => true, :close => true, :write => true )
+    end
 
+    it "should error if it cannot create the directory" do
       FileUtils.expects(:mkdir_p).
         with("/var/run/chef").
         raises(Errno::EACCES, "Test Failure").
@@ -119,17 +123,25 @@ describe Pylon::Daemon do
         raises(Errno::EACCES,"Test Failure").
         times(1)
 
-      Pylon::Application.expects(:fatal!).at_least_once
 
-      @f_mock = stub(:print => true, :close => true, :write => true )
+      Pylon::Application.expects(:fatal!).at_least_once.returns(true)
+
+      Pylon::Daemon.save_pid_file
     end
 
-    it "should error if it cannot create the directory" do
+    it "should error if it cannot write to the pid file" do
+      File.expects(:open).
+        with("/var/run/chef/chef-client.pid", "w").
+        raises(Errno::EACCES,"Test Failure").
+        times(1)
+
+      Pylon::Application.expects(:fatal!).at_least_once.returns(true)
       Pylon::Daemon.save_pid_file
     end
 
     it "should try and create the parent directory" do
-      FileUtils.expects(:mkdir_p).with("/var/run/chef").returns(true)
+      FileUtils.expects(:mkdir_p).returns(true)
+      File.expects(:open).returns(true)
       Pylon::Daemon.save_pid_file
     end
 
@@ -141,7 +153,6 @@ describe Pylon::Daemon do
     it "should write the pid, converted to string, to the pid file" do
       FileUtils.expects(:mkdir_p).with("/var/run/chef").returns(true)
       Process.expects(:pid).returns("1337").times(1)
-
       @f_mock.expects(:write).with("1337").returns(true).times(1)
       File.expects(:open).with("/var/run/chef/chef-client.pid", "w").times(1).yields(@f_mock)
       Pylon::Daemon.save_pid_file
@@ -157,7 +168,7 @@ describe Pylon::Daemon do
     describe "when the pid file exists" do
 
       before do
-        File.stub!(:exists?).with("/var/run/chef/chef-client.pid").and_return(true)
+        File.expects(:exists?).with("/var/run/chef/chef-client.pid").returns(true)
       end
 
       it "should remove the file" do
