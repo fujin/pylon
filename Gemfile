@@ -2,6 +2,7 @@ source "http://rubygems.org"
 
 group :test do
   gem "minitest", "~> 2.11.0", :require => false
+  gem "minitest-reporters", :require => false
   gem "guard"
   gem "guard-minitest-decisiv"
   gem "libnotify"

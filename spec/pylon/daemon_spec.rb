@@ -55,7 +55,7 @@ describe Pylon::Daemon do
       end
 
       it "should return false" do
-        Pylon::Daemon.running?.should be_false
+        Pylon::Daemon.running?.must_equal false
       end
 
     end
@@ -74,7 +74,7 @@ describe Pylon::Daemon do
       end
 
       it "should return the supplied value" do
-        Pylon::Daemon.pid_file.should eql("/var/run/chef/chef-client.pid")
+        Pylon::Daemon.pid_file.must_equal "/var/run/chef/chef-client.pid"
       end
     end
 
@@ -86,7 +86,7 @@ describe Pylon::Daemon do
       end
 
       it "should return a valued based on @name" do
-        Pylon::Daemon.pid_file.should eql("/tmp/chef-client.pid")
+        Pylon::Daemon.pid_file.must_equal "/tmp/chef-client.pid"
       end
 
     end
@@ -99,7 +99,7 @@ describe Pylon::Daemon do
     end
 
     it "should suck the pid out of pid_file" do
-      File.should_receive(:read).with("/var/run/chef/chef-client.pid").and_return("1337")
+      File.expects(:read).with("/var/run/chef/chef-client.pid").returns("1337")
       Pylon::Daemon.pid_from_file
     end
   end
@@ -107,25 +107,43 @@ describe Pylon::Daemon do
   describe ".save_pid_file" do
 
     before do
-      Process.stub!(:pid).and_return(1337)
       Pylon::Config[:pid_file] = "/var/run/chef/chef-client.pid"
-      Pylon::Application.stub!(:fatal!).and_return(true)
-      @f_mock = mock(File, { :print => true, :close => true, :write => true })
-      File.stub!(:open).with("/var/run/chef/chef-client.pid", "w").and_yield(@f_mock)
+
+      FileUtils.expects(:mkdir_p).
+        with("/var/run/chef").
+        raises(Errno::EACCES, "Test Failure").
+        times(1)
+
+      File.expects(:open).
+        with("/var/run/chef/chef-client.pid", "w").
+        raises(Errno::EACCES,"Test Failure").
+        times(1)
+
+      Pylon::Application.expects(:fatal!).at_least_once
+
+      @f_mock = stub(:print => true, :close => true, :write => true )
+    end
+
+    it "should error if it cannot create the directory" do
+      Pylon::Daemon.save_pid_file
     end
 
     it "should try and create the parent directory" do
-      FileUtils.should_receive(:mkdir_p).with("/var/run/chef")
+      FileUtils.expects(:mkdir_p).with("/var/run/chef").returns(true)
       Pylon::Daemon.save_pid_file
     end
 
     it "should open the pid file for writing" do
-      File.should_receive(:open).with("/var/run/chef/chef-client.pid", "w")
+      File.expects(:open).with("/var/run/chef/chef-client.pid", "w").yields(@f_mock)
       Pylon::Daemon.save_pid_file
     end
 
     it "should write the pid, converted to string, to the pid file" do
-      @f_mock.should_receive(:write).with("1337").once.and_return(true)
+      FileUtils.expects(:mkdir_p).with("/var/run/chef").returns(true)
+      Process.expects(:pid).returns("1337").times(1)
+
+      @f_mock.expects(:write).with("1337").returns(true).times(1)
+      File.expects(:open).with("/var/run/chef/chef-client.pid", "w").times(1).yields(@f_mock)
       Pylon::Daemon.save_pid_file
     end
 
