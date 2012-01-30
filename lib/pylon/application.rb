@@ -21,6 +21,7 @@ require_relative "config"
 require_relative "log"
 require_relative "daemon"
 require_relative "elector"
+require_relative "dcell"
 
 class Pylon
   class Application
@@ -54,7 +55,7 @@ class Pylon
       Pylon::Daemon.change_privilege
       Pylon::Daemon.daemonize "pylon" if Pylon::Config[:daemonize]
 
-      Pylon::Elector.new
+      Pylon::DCell.new
     end
 
     def initialize
@@ -118,47 +119,30 @@ class Pylon
     :description => "Group to set privilege to",
     :proc => nil
 
-    option :multicast,
-    :short => "-M",
-    :long => "--multicast",
-    :description => "Enable multicast support via encapuslated pragmatic general multicast",
-    :proc => lambda { |m| true }
+    option :dcell_id,
+    :long => "--dcell-id DCELL_ID",
+    :description => "The ID to use for dcell communication"
 
-    option :multicast_interface,
-    :short => "-i INTERFACE",
-    :long => "--multicast-interface INTERFACE",
-    :description => "Interface to use to send multicast over"
+    option :dcell_addr,
+    :short => "-a DCELL_ADDR",
+    :long => "--dcell-addr DCELL_ADDR",
+    :description => "The tcp zeromq endpoint to use for dcell communication, e.g. tcp://0.0.0.0:1234"
 
-    option :multicast_address,
-    :short => "-a ADDRESS",
-    :long => "--multicast-address ADDRESS",
-    :description => "Address to use for UDP multicast"
+    option :dcell_registry_adapter,
+    :long => "--dcell-registry-adapter DCELL_REGISTRY_ADAPTER",
+    :description => "Which adapter DCell should use for its registry, either zk or redis"
 
-    option :multicast_port,
-    :short => "-p PORT",
-    :long => "--multicast-port PORT",
-    :description => "Port to use for UDP multicast"
+    option :dcell_registry_server,
+    :long => "--dcell-registry-server DCELL_REGISTRY_server",
+    :description => "The host where the DCell registry is running"
 
-    option :multicast_loopback,
-    :short => "-L",
-    :long => "--multicast-loopback",
-    :description => "Enable multicast over loopback interfaces",
-    :proc => lambda { |loop| true }
+    option :dcell_registry_PORT,
+    :long => "--dcell-registry-port DCELL_REGISTRY_PORT",
+    :description => "The port where the DCell registry is running"
 
-    option :tcp_address,
-    :short => "-t TCPADDRESS",
-    :long => "--tcp-address TCPADDRESS",
-    :description => "Interface to use to bind request socket to"
+    option :dcell_registry_password,
+    :long => "--dcell-registry-password DCELL_REGISTRY_PASSWORD",
+    :description => "The password for the dcell registry, only used for Redis"
 
-    option :tcp_port,
-    :short => "-P TCPPORT",
-    :long => "--tcp-port TCPPORT",
-    :description => "Port to bind request socket to"
-
-    option :minimum_master_nodes,
-    :short => "-m NODES",
-    :long => "--minimum-master-nodes NODES",
-    :description => "How many nodes to wait for before starting master election",
-    :proc => lambda { |nodes| nodes.to_i }
   end
 end
