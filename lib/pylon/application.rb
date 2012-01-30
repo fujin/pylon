@@ -21,6 +21,7 @@ require_relative "config"
 require_relative "log"
 require_relative "daemon"
 require_relative "elector"
+require_relative "dcell"
 
 class Pylon
   class Application
@@ -54,7 +55,12 @@ class Pylon
       Pylon::Daemon.change_privilege
       Pylon::Daemon.daemonize "pylon" if Pylon::Config[:daemonize]
 
-      Pylon::Elector.new
+      case Pylon::Config[:network_model]
+      when :dcell
+        Pylon::DCell.new
+      when :native
+        Pylon::Elector.new
+      end
     end
 
     def initialize
@@ -160,5 +166,37 @@ class Pylon
     :long => "--minimum-master-nodes NODES",
     :description => "How many nodes to wait for before starting master election",
     :proc => lambda { |nodes| nodes.to_i }
+
+    option :network_model,
+    :short => "-N NETWORK_MODEL",
+    :long => "--network-model NETWORK_MODEL",
+    :description => "Net model to use for node communication, options are 'native' or 'dcell'",
+    :proc => lambda { |model| model.to_sym }
+
+    option :dcell_id,
+    :long => "--dcell-id DCELL_ID",
+    :description => "The ID to use for dcell communication"
+
+    option :dcell_addr,
+    :short => "-a DCELL_ADDR",
+    :long => "--dcell-addr DCELL_ADDR",
+    :description => "The tcp zeromq endpoint to use for dcell communication, e.g. tcp://0.0.0.0:1234"
+
+    option :dcell_registry_adapter,
+    :long => "--dcell-registry-adapter DCELL_REGISTRY_ADAPTER",
+    :description => "Which adapter DCell should use for its registry, either zk or redis"
+
+    option :dcell_registry_server,
+    :long => "--dcell-registry-server DCELL_REGISTRY_server",
+    :description => "The host where the DCell registry is running"
+
+    option :dcell_registry_PORT,
+    :long => "--dcell-registry-port DCELL_REGISTRY_PORT",
+    :description => "The port where the DCell registry is running"
+
+    option :dcell_registry_password,
+    :long => "--dcell-registry-password DCELL_REGISTRY_PASSWORD",
+    :description => "The password for the dcell registry, only used for Redis"
+
   end
 end

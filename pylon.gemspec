@@ -40,13 +40,15 @@ Gem::Specification.new do |s|
       end
 
       { "ffi" => "~> 1.0.9",
-        "ffi-rzmq" => "~> 0.8.2",
+        "ffi-rzmq" => "~> 0.9.3",
         "mixlib-log" => ">= 0",
         "mixlib-cli" => ">= 0",
         "mixlib-config" => ">= 0",
         "uuidtools" => "~> 2.1.2",
         "json" => ">= 0",
-        "dcell" => "~> 0.8.0"
+        "dcell" => "~> 0.8.0",
+        "celluloid" => "~> 0.8.0",
+        "zk" => "~> 0.8.6"
       }.each do |gem, version|
         s.add_runtime_dependency(gem, [version])
       end

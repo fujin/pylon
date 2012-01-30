@@ -59,5 +59,14 @@ class Pylon
     fd_timeout 30
     fd_retries 3
 
+    network_model :dcell
+
+    dcell_id nil
+    dcell_addr "tcp://0.0.0.0:13337"
+    dcell_registry_adapter "zk"
+    dcell_registry_server "localhost"
+    dcell_registry_port 2181
+    dcell_registry_password nil # only used for redis adapter
+
   end # Config
 end # Pylon
