@@ -9,12 +9,7 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 
-require "rspec"
-
-if RUBY_VERSION =~ /1.9/
-  require "simplecov"
-  SimpleCov.start
-end
-
+require "minitest/autorun"
+require "mocha"
 
 require_relative "../lib/pylon"

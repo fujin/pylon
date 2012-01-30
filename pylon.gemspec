@@ -31,10 +31,9 @@ Gem::Specification.new do |s|
         "simplecov" => ">= 0",
         "vagrant" => ">= 0",
         "virtualbox" => ">= 0",
-        "rspec" => "~> 2.8.0",
-        "guard" => "~> 0.10.0",
-        "guard-rspec" => "~> 0.6.0",
-        "libnotify" => "~> 0.7.2"
+        "minitest" => "~> 2.11.0",
+        "purdytest" => "~> 1.0.0",
+        "mocha" => "~> 0.10.3"
       }.each do |gem, version|
         s.add_development_dependency(gem, [version])
       end
