@@ -9,5 +9,5 @@ rvm:
   - rbx-19mode
   - ruby-head
 
-env:
-  - JRUBY_OPTS=-X-C
+# env:
+#   - JRUBY_OPTS=-X-C
