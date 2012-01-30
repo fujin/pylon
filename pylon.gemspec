@@ -28,7 +28,6 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       { "bundler" => "~> 1.0.0",
         "jeweler" => "~> 1.6.4",
-        "simplecov" => ">= 0",
         "vagrant" => ">= 0",
         "virtualbox" => ">= 0",
         "minitest" => "~> 2.11.0",
