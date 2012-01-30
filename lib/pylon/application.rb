@@ -20,7 +20,6 @@ require "mixlib/cli"
 require_relative "config"
 require_relative "log"
 require_relative "daemon"
-require_relative "elector"
 require_relative "dcell"
 
 class Pylon
