@@ -1,4 +1,4 @@
-require_relative "./helpers"
+require_relative "./spec_helper"
 
 describe Pylon do
   it "should have a PYLON_ROOT const defined" do

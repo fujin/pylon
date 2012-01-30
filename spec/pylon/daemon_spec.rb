@@ -16,9 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative "../helpers"
+require_relative "../spec_helper"
 require 'ostruct'
-require_relative "../../lib/pylon/daemon" 
+require_relative "../../lib/pylon/daemon"
 
 describe Pylon::Daemon do
   before do
@@ -38,11 +38,11 @@ describe Pylon::Daemon do
     describe "when a pid file exists" do
 
       before do
-        Pylon::Daemon.stub!(:pid_from_file).and_return(1337)
+        Pylon::Daemon.expects(:pid_from_file).returns(1337)
       end
 
       it "should check that there is a process matching the pidfile" do
-        Process.should_receive(:kill).with(0, 1337)
+        Process.must_receive(:kill).with(0, 1337)
         Pylon::Daemon.running?
       end
 
@@ -51,7 +51,7 @@ describe Pylon::Daemon do
     describe "when the pid file is nonexistent" do
 
       before do
-        Pylon::Daemon.stub!(:pid_from_file).and_return(nil)
+        Pylon::Daemon.expects(:pid_from_file).returns(nil)
       end
 
       it "should return false" do

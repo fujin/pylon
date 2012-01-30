@@ -1,7 +1,12 @@
 source "http://rubygems.org"
 
-gem "minitest", "~> 2.11.0", :require => false, :group => :test
-gem "mocha", :require => false, :group => :test
+group :test do
+  gem "minitest", "~> 2.11.0", :require => false
+  gem "guard"
+  gem "guard-minitest-decisiv"
+  gem "libnotify"
+  gem "mocha", :require => false
+end
 
 # Specify your gem's dependencies in pylon.gemspec
 gemspec
