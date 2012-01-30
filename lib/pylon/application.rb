@@ -55,12 +55,7 @@ class Pylon
       Pylon::Daemon.change_privilege
       Pylon::Daemon.daemonize "pylon" if Pylon::Config[:daemonize]
 
-      case Pylon::Config[:network_model]
-      when :dcell
-        Pylon::DCell.new
-      when :native
-        Pylon::Elector.new
-      end
+      Pylon::DCell.new
     end
 
     def initialize
@@ -123,55 +118,6 @@ class Pylon
     :long => "--group GROUP",
     :description => "Group to set privilege to",
     :proc => nil
-
-    option :multicast,
-    :short => "-M",
-    :long => "--multicast",
-    :description => "Enable multicast support via encapuslated pragmatic general multicast",
-    :proc => lambda { |m| true }
-
-    option :multicast_interface,
-    :short => "-i INTERFACE",
-    :long => "--multicast-interface INTERFACE",
-    :description => "Interface to use to send multicast over"
-
-    option :multicast_address,
-    :short => "-a ADDRESS",
-    :long => "--multicast-address ADDRESS",
-    :description => "Address to use for UDP multicast"
-
-    option :multicast_port,
-    :short => "-p PORT",
-    :long => "--multicast-port PORT",
-    :description => "Port to use for UDP multicast"
-
-    option :multicast_loopback,
-    :short => "-L",
-    :long => "--multicast-loopback",
-    :description => "Enable multicast over loopback interfaces",
-    :proc => lambda { |loop| true }
-
-    option :tcp_address,
-    :short => "-t TCPADDRESS",
-    :long => "--tcp-address TCPADDRESS",
-    :description => "Interface to use to bind request socket to"
-
-    option :tcp_port,
-    :short => "-P TCPPORT",
-    :long => "--tcp-port TCPPORT",
-    :description => "Port to bind request socket to"
-
-    option :minimum_master_nodes,
-    :short => "-m NODES",
-    :long => "--minimum-master-nodes NODES",
-    :description => "How many nodes to wait for before starting master election",
-    :proc => lambda { |nodes| nodes.to_i }
-
-    option :network_model,
-    :short => "-N NETWORK_MODEL",
-    :long => "--network-model NETWORK_MODEL",
-    :description => "Net model to use for node communication, options are 'native' or 'dcell'",
-    :proc => lambda { |model| model.to_sym }
 
     option :dcell_id,
     :long => "--dcell-id DCELL_ID",
