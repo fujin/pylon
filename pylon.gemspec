@@ -30,9 +30,7 @@ Gem::Specification.new do |s|
         "jeweler" => "~> 1.6.4",
         "vagrant" => ">= 0",
         "virtualbox" => ">= 0",
-        "minitest" => "~> 2.11.0",
         "purdytest" => "~> 1.0.0",
-#        "mocha" => "~> 0.10.3"
       }.each do |gem, version|
         s.add_development_dependency(gem, [version])
       end
