@@ -76,24 +76,4 @@ describe Pylon::Application do
     end
 
   end
-
-  describe "setup_application" do
-    before do
-      @app = Pylon::Application.new
-    end
-
-    it "should raise an error" do
-      lambda { @app.setup_application }.should raise_error(Pylon::Exceptions::Application)
-    end
-  end
-
-  describe "run_application" do
-    before do
-      @app = Pylon::Application.new
-    end
-
-    it "should raise an error" do
-      lambda { @app.run_application }.should raise_error(Pylon::Exceptions::Application)
-    end
-  end
 end
