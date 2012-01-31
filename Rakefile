@@ -15,10 +15,11 @@ require "bundler/gem_tasks"
 
 desc "run specs"
 Rake::TestTask.new do |spec|
+  spec.loader = :direct
   spec.verbose = true
   spec.name = "spec"
   spec.test_files = FileList["spec/**/*_spec.rb"]
-  spec.options = "--color --format doc"
+  spec.options = "--format doc"
 end
 
 task :default => %w[spec]
