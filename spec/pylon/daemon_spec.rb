@@ -27,7 +27,7 @@ describe Pylon::Daemon do
     Pylon::Config.configuration.replace(@original_config)
   end
 
-  describe ".running?" do
+  describe "running?" do
 
     before do
       Pylon::Daemon.name = "spec"
@@ -59,7 +59,7 @@ describe Pylon::Daemon do
     end
   end
 
-  describe ".pid_file" do
+  describe "pid_file" do
 
     describe "when the pid_file option has been set" do
 
@@ -90,7 +90,7 @@ describe Pylon::Daemon do
     end
   end
 
-  describe ".pid_from_file" do
+  describe "pid_from_file" do
 
     before do
       Pylon::Config[:pid_file] = "/var/run/chef/chef-client.pid"
@@ -102,7 +102,7 @@ describe Pylon::Daemon do
     end
   end
 
-  describe ".save_pid_file" do
+  describe "save_pid_file" do
 
     before do
       Process.stub!(:pid).and_return(1337)
@@ -129,7 +129,7 @@ describe Pylon::Daemon do
 
   end
 
-  describe ".remove_pid_file" do
+  describe "remove_pid_file" do
     before do
       Pylon::Config[:pid_file] = "/var/run/chef/chef-client.pid"
     end
@@ -162,7 +162,7 @@ describe Pylon::Daemon do
     end
   end
 
-  describe ".change_privilege" do
+  describe "change_privilege" do
 
     before do
       Pylon::Daemon.stub!(:_change_privilege).and_return(true)
@@ -211,7 +211,7 @@ describe Pylon::Daemon do
     end
   end
 
-  describe "._change_privilege" do
+  describe "_change_privilege" do
 
     before do
       Process.stub!(:euid).and_return(0)
