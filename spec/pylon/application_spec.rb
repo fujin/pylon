@@ -20,14 +20,61 @@ require_relative "../spec_helper"
 
 describe Pylon::Application do
   before do
+    @original_config = Pylon::Config.configuration
     Pylon::Log.logger = Logger.new(StringIO.new)
     @app = Pylon::Application.new
     Dir.stub!(:chdir).and_return(0)
     @app.stub!(:reconfigure)
   end
 
+  after do
+    Pylon::Config.configuration.replace(@original_config)
+  end
+
   describe "run" do
-    it "needs tests"
+    before do
+      @app.stub!(:parse_options).and_return(true)
+      Pylon::Config.stub!(:merge!).and_return(true)
+      @app.stub!(:configure_logging).and_return(true)
+      Pylon::DCell.stub!(:new).and_return(true)
+    end
+
+    it "should parse options" do
+      @app.should_receive(:parse_options).and_return(true)
+      @app.run
+    end
+
+    it "should merge configuration options from the cli" do
+      Pylon::Config.should_receive(:merge!).once.and_return(true)
+      @app.run
+    end
+
+    it "should call configure logging" do
+      @app.should_receive(:configure_logging).and_return(true)
+      @app.run
+    end
+
+    it "should call change_privilege" do
+      Pylon::Daemon.should_receive(:change_privilege).and_return(true)
+      @app.run
+    end
+
+    it "should not daemonize" do
+      Pylon::Config[:daemonize] = false
+      Pylon::Daemon.should_not_receive(:daemonize).with("pylon")
+      @app.run
+    end
+
+    describe "if daemonize is enabled" do
+      before do
+        Pylon::Config[:daemonize] = true
+      end
+
+      it "should daemonize" do
+        Pylon::Daemon.should_receive(:daemonize).with("pylon").and_return(true)
+        @app.run
+      end
+    end
   end
 
   describe "configure_logging" do
