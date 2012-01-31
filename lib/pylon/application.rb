@@ -67,16 +67,11 @@ class Pylon
         Pylon::Application.fatal!("SIGINT received, stopping", 2)
       end
 
-      unless RUBY_PLATFORM =~ /mswin|mingw32|windows/
-        trap("QUIT") do
-          Pylon::Log.info("SIGQUIT received, call stack:\n  " + caller.join("\n  "))
-        end
-
-        trap("HUP") do
-          Pylon::Log.info("SIGHUP received, reconfiguring")
-          # reconfigure
-        end
+      trap("HUP") do
+        Pylon::Log.info("SIGHUP received, reconfiguring")
+        # reconfigure
       end
+
     end
 
     option :config_file,

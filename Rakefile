@@ -15,7 +15,8 @@ require "bundler/gem_tasks"
 
 desc "run specs"
 Rake::TestTask.new do |spec|
-  spec.verbose = false
+  spec.loader = :direct
+  spec.verbose = true
   spec.name = "spec"
   spec.test_files = FileList["spec/**/*_spec.rb"]
 end

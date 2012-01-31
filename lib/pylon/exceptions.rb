@@ -20,6 +20,8 @@ require 'timeout'
 class Pylon
   class Exceptions
 
+    class Application < StandardError; end
+
     class DCell
       class Respawn < StandardError; end
     end
