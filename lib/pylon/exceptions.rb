@@ -20,19 +20,14 @@ require 'timeout'
 class Pylon
   class Exceptions
 
-    class Node
-      class PingTimeout < RuntimeError; end
-      class BadTimestamp < RuntimeError; end
-    end
-
-    class FailureDetector
-      class PingTimeout < RuntimeError; end
+    class DCell
+      class Respawn < StandardError; end
     end
 
     class Command
       class NotFound < ArgumentError; end
       class InvalidOptions < ArgumentError; end
     end
-    
+
   end # Exceptions
 end # Pylon

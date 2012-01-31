@@ -16,6 +16,7 @@
 # limitations under the License.
 #
 
+require_relative "exceptions"
 require_relative "config"
 require_relative "log"
 require_relative "command"
@@ -40,7 +41,7 @@ class Pylon
           Log.info "#{current_actor}: dcell node: #{node.inspect}, actors: #{node.actors}"
         end
         Log.info "#{current_actor}: crashing in 35s for respawn"
-        after(35) { raise Pylon::DCell::Respawn }
+        after(35) { raise Pylon::Exceptions::DCell::Respawn }
       end
     end
 
@@ -55,7 +56,7 @@ class Pylon
             end
           end
         end
-        after(35) { raise Pylon::DCell::Respawn }
+        after(35) { raise Pylon::Exceptions::DCell::Respawn }
       end
     end
 
@@ -63,6 +64,7 @@ class Pylon
       include Celluloid
 
       def time
+        Log.info "#{current_actor}: got request for time"
         "The time is: #{Time.now}"
       end
     end
@@ -93,7 +95,6 @@ class Pylon
       Log.info "#{self}: starting DCell"
       @dcell = ::DCell.start options
       Log.info "#{self}: dcell started: #{dcell}"
-
 
       Class.new(Celluloid::Group) do
         supervise TimeServer, :as => :time_server
