@@ -3,23 +3,24 @@
 require "rubygems" unless RUBY_VERSION =~ /1.9/
 require "bundler"
 begin
-  Bundler.setup(:default, :development)
+  Bundler.setup(:default,
+                :development,
+                :test)
 rescue Bundler::BundlerError => e
   $stderr.puts e.message
   $stderr.puts "Run `bundle install` to install missing gems"
   exit e.status_code
 end
-require "rake"
-require "rake/testtask"
-require "bundler/gem_tasks"
 
-desc "run specs"
-Rake::TestTask.new do |spec|
-  spec.loader = :direct
-  spec.verbose = true
-  spec.name = "spec"
-  spec.test_files = FileList["spec/**/*_spec.rb"]
-  spec.options = "--format doc"
+
+require "rake"
+require "bundler/gem_tasks"
+require "rspec/core/rake_task"
+require "rake/testtask"
+
+RSpec::Core::RakeTask.new do |t|
+  t.verbose = true
+  t.rspec_opts = "--color --format doc"
 end
 
 task :default => %w[spec]

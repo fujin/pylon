@@ -1,7 +1,7 @@
 source "http://rubygems.org"
 
 group :test do
-  gem "rspec", "~> 2.8.0"
+  gem "rspec", "~> 2.8.0", :require => false
   gem "guard"
   gem "guard-rspec"
 end

@@ -17,8 +17,6 @@
 # limitations under the License.
 
 require_relative "../spec_helper"
-require 'ostruct'
-require_relative "../../lib/pylon/daemon"
 
 describe Pylon::Daemon do
   before do
