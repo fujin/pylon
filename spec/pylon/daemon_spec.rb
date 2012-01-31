@@ -167,6 +167,7 @@ describe Pylon::Daemon do
   describe ".change_privilege" do
 
     before do
+      Pylon::Daemon.stub!(:_change_privilege).and_return(true)
       Pylon::Application.stub!(:fatal!).and_return(true)
       Pylon::Config[:user] = 'aj'
       Dir.stub!(:chdir)
