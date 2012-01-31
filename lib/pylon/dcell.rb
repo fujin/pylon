@@ -30,32 +30,41 @@ require "timeout"
 
 class Pylon
   class DCell
+    class Respawn < StandardError; end
 
-    class Group < Celluloid::Group
+    class ClusterStatus
+      include Celluloid
 
-      class TimeServer
-        include Celluloid
-        def time; "The time is: #{Time.now}"; end
+      def initialize
+        ::DCell::Node.all.each do |node|
+          Log.info "#{current_actor}: dcell node: #{node.inspect}, actors: #{node.actors}"
+        end
+        Log.info "#{current_actor}: crashing in 35s for respawn"
+        after(35) { raise Pylon::DCell::Respawn }
       end
+    end
 
-      class TimeClient
-        include Celluloid
+    class TimeClient
+      include Celluloid
 
-        def initialize
-          Timeout::timeout(10) do
-            ::DCell::Node.all.each do |node|
-
-              if node.actors.include? :time_server
-                Log.info "#{self}: time: #{node[:time_server].time}"
-              end
-
+      def initialize
+        Timeout::timeout(10) do
+          ::DCell::Node.all.each do |node|
+            if node.actors.include? :time_server
+              Log.info "#{current_actor}: time: #{node[:time_server].time}"
             end
           end
         end
+        after(35) { raise Pylon::DCell::Respawn }
       end
+    end
 
-      supervise TimeServer, :as => :time_server
-      supervise TimeClient, :as => :time_client
+    class TimeServer
+      include Celluloid
+
+      def time
+        "The time is: #{Time.now}"
+      end
     end
 
     attr_reader :dcell, :options
@@ -85,16 +94,17 @@ class Pylon
       @dcell = ::DCell.start options
       Log.info "#{self}: dcell started: #{dcell}"
 
-      output = Group.run!
 
-      loop do
-        Log.info "#{self}: dcell nodes #{::DCell::Node.all}"
-        Log.info "#{self}: dcell me #{::DCell.me}"
-        Log.info "#{self}: dcell actors on me #{::DCell.me.actors.inspect}"
-        Log.info "sleeping 30"
-        sleep 30
-      end
+      Class.new(Celluloid::Group) do
+        supervise TimeServer, :as => :time_server
+      end.run!
+
+      Class.new(Celluloid::Group) do
+        supervise TimeClient, :as => :time_client
+        supervise ClusterStatus, :as => :cluster_status
+      end.run
 
     end
+
   end
 end # Pylon
