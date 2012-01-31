@@ -25,7 +25,6 @@ require "celluloid"
 require "celluloid/group"
 require "dcell"
 require "dcell/server"
-require "dcell/registries/zk_adapter"
 require "uuidtools"
 require "timeout"
 
