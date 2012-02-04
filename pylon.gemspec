@@ -28,18 +28,16 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       { "bundler" => "~> 1.0.0",
         "jeweler" => "~> 1.6.4",
-        "vagrant" => ">= 0",
-        "virtualbox" => ">= 0",
         "purdytest" => "~> 1.0.0",
       }.each do |gem, version|
         s.add_development_dependency(gem, [version])
       end
 
-      { "mixlib-log" => ">= 0",
-        "mixlib-cli" => ">= 0",
-        "mixlib-config" => ">= 0",
+      { "chef" => "~> 0.10.8",
+        "mixlib-log" => "~> 1.3.0",
+        "mixlib-cli" => "~> 1.2.2",
+        "mixlib-config" => "~> 1.1.2",
         "uuidtools" => "~> 2.1.2",
-        "json" => ">= 0",
         "dcell" => "~> 0.8.0",
       }.each do |gem, version|
         s.add_runtime_dependency(gem, [version])
