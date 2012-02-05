@@ -25,11 +25,26 @@ require_relative "dcell"
 class Pylon
   class Application
     class << self
+      def debug_stacktrace e
+        message = "#{e.class}: #{e}\n#{e.backtrace.join("\n")}"
+        chef_stacktrace_out = "Generated at #{Time.now.to_s}\n"
+        chef_stacktrace_out += message
+
+        Chef::FileCache.store("chef-stacktrace.out", chef_stacktrace_out)
+        Chef::Log.fatal("Stacktrace dumped to #{Chef::FileCache.load("chef-stacktrace.out", false)}")
+        Chef::Log.debug(message)
+        true
+      end
+
       def fatal! message, error_code = -1
         Pylon::Log.fatal message
         Process.exit error_code
       end
 
+      def exit! message, error_code = -1
+        Pylon::Log.debug message
+        Process.exit error_code
+      end
     end
 
     include Mixlib::CLI

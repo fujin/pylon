@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ruby_string="jruby-1.6.6"
+ruby_string="ruby-1.9.3-p0"
 gemset_name="pylon-dcell"
 
 if rvm list strings | grep -q "${ruby_string}" ; then
@@ -10,7 +10,8 @@ if rvm list strings | grep -q "${ruby_string}" ; then
     && -s "${rvm_path:-$HOME/.rvm}/environments/${ruby_string}@${gemset_name}" ]] ; then
     \. "${rvm_path:-$HOME/.rvm}/environments/${ruby_string}@${gemset_name}"
   else
-    rvm --create  "${ruby_string}@${gemset_name}"
+    rvm gemset create ${gemset_name}
+    rvm gemset use ${gemset_name}
   fi
 
   (
@@ -19,8 +20,7 @@ if rvm list strings | grep -q "${ruby_string}" ; then
       gem install bundler
     fi
 
-    # Bundle while redcing excess noise.
-    bundle | grep -v 'Using' | grep -v 'complete' | sed '/^$/d'
+    bundle
   )
 
 else

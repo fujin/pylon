@@ -17,27 +17,26 @@
 # limitations under the License.
 #
 
-execute "apt-get update"
-%w{zeromq build-essential tmux}.each do |pkg|
-  package pkg
+# we shouldn't need to require dcell, celluloid, or anything. should
+# already be loaded.
+
+class Test
+  include Celluloid
+
+  def test
+    true
+  end
 end
 
-execute "rsync -avu --progress --delete /vagrant/ /srv/pylon/" do
-  notifies :delete, "directory[/srv/pylon/vendor/bundle]"
-  notifies :run, "execute[bundle]"
+class TestGroup < Celluloid::Group
+  supervise Test, :as => :test_class
 end
 
-directory "/srv/pylon/vendor/bundle" do
-  action :nothing
-  recursive true
-end
+log "testing pylon"
 
-execute "bundle" do
-  command "bundle install --deployment"
-  cwd "/srv/pylon"
-  user "vagrant"
-  group "vagrant"
-  action :nothing
+ruby_block "supervise test class" do
+  block do
+    TestGroup.run!
+  end
 end
-
 

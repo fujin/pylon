@@ -1,3 +1,7 @@
+#!/usr/bin/env ruby
+#
+# ./chef-solo-pylon
+#
 # Author:: AJ Christensen (<aj@junglist.gen.nz>)
 # Copyright:: Copyright (c) 2012 AJ Christensen
 # License:: Apache License, Version 2.0
@@ -14,15 +18,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class Pylon
-  PYLON_ROOT = File.dirname(File.expand_path(File.dirname(__FILE__)))
-  VERSION = "0.2.9"
-end
+require "rubygems" unless RUBY_PLATFORM =~ /1.9/
 
-unless Kernel.respond_to?(:require_relative)
-  module Kernel
-    def require_relative(path)
-      require File.join(File.dirname(caller[0]), path.to_str)
-    end
-  end
-end
+lib = File.expand_path('../../lib', __FILE__)
+$:.unshift(lib) unless $:.include?(lib)
+
+require_relative "../lib/pylon"
+require_relative "../lib/pylon/application"
+require_relative "../lib/pylon/application/solo_pylon"
+
+Pylon::Application::SoloPylon.new.run

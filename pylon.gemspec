@@ -10,10 +10,10 @@ Gem::Specification.new do |s|
   s.default_executable = %q{pylon}
   s.description = %q{leader election with zeromq for ruby using widely available leader election algorithms, similar to gen_leader erlang project in essence}
   s.email = %q{aj@junglist.gen.nz}
-  s.executables = ["pylon"]
+  s.executables = %w{pylon chef-solo-pylon}
   s.extra_rdoc_files = [
                         "LICENSE",
-                        "README.org"
+                        "readme.md"
                        ]
   s.files = Dir["lib/**/*.rb"] + Dir["bin/*"] + Dir["cookbooks/**/*"]
   s.homepage = %q{http://github.com/fujin/pylon}
@@ -29,6 +29,7 @@ Gem::Specification.new do |s|
       { "bundler" => "~> 1.0.0",
         "jeweler" => "~> 1.6.4",
         "purdytest" => "~> 1.0.0",
+        "vagrant" => "~> 0.8"
       }.each do |gem, version|
         s.add_development_dependency(gem, [version])
       end
