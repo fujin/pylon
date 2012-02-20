@@ -7,6 +7,8 @@ group :test do
 end
 
 gem "dcell", :git => "git://github.com/fujin/dcell.git", :branch => "feature/moneta"
+gem "celluloid", :git => "git://github.com/tarcieri/celluloid.git"
+gem "celluloid-io", :git => "git://github.com/tarcieri/celluloid-io.git"
 
 # Specify your gem's dependencies in pylon.gemspec
 gemspec
