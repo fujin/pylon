@@ -16,8 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require "pylon/dcell"
-require "pylon/application"
+# require "pylon/dcell"
+# require "pylon/application"
 
 # Chef libs to launch chef-solo
 require "chef"

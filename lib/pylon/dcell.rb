@@ -16,11 +16,6 @@
 # limitations under the License.
 #
 
-require_relative "exceptions"
-require_relative "config"
-require_relative "log"
-require_relative "command"
-
 require "celluloid"
 require "celluloid/group"
 require "dcell"

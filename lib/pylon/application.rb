@@ -15,12 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 require "mixlib/cli"
-require_relative "config"
+
 require_relative "log"
 require_relative "daemon"
-require_relative "dcell"
+require_relative "config"
+require_relative "paxos"
 
 class Pylon
   class Application
@@ -69,7 +69,7 @@ class Pylon
       Pylon::Daemon.change_privilege
       Pylon::Daemon.daemonize "pylon" if Pylon::Config[:daemonize]
 
-      Pylon::DCell.new
+      Pylon::Paxos.start
     end
 
     def initialize

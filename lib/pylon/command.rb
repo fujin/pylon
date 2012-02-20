@@ -14,10 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require_relative "../pylon" # For the PYLON_ROOT const
-require_relative "log"
-require_relative "exceptions"
-require_relative "mixin/convert_to_class_name"
 
 class Pylon
   class Command

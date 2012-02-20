@@ -65,5 +65,7 @@ class Pylon
     dcell_addr "tcp://0.0.0.0:13337"
     dcell_registry_adapter "moneta"
 
+    paxos_addr "tcp://0.0.0.0:4200"
+
   end # Config
 end # Pylon

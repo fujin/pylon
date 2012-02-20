@@ -26,7 +26,8 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      { "bundler" => "~> 1.0.0",
+      {
+        "bundler" => "~> 1.0.0",
         "jeweler" => "~> 1.6.4",
         "purdytest" => "~> 1.0.0",
         "vagrant" => "~> 0.8"
@@ -34,7 +35,8 @@ Gem::Specification.new do |s|
         s.add_development_dependency(gem, [version])
       end
 
-      { "chef" => "~> 0.10.8",
+      {
+        "chef" => "~> 0.10.8",
         "mixlib-log" => "~> 1.3.0",
         "mixlib-cli" => "~> 1.2.2",
         "mixlib-config" => "~> 1.1.2",

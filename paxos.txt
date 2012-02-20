@@ -1,0 +1,44 @@
+process Replica(leaders, initial state)
+  var state := initial state, slot num := 1;
+  var proposals := ∅, decisions := ∅;
+
+  function propose(p)
+    if ∃s : s, p ∈ decisions then
+      s := min{s | s ∈ N+ ∧
+      ∃p : s, p ∈ proposals ∪ decisions};
+      proposals := proposals ∪ { s , p };
+      ∀λ ∈ leaders : send(λ, propose, s , p );
+    end if
+  end function
+
+
+function perform( κ, cid, op )
+if ∃s : s < slot num ∧
+s, κ, cid, op ∈ decisions then
+slot num := slot num + 1;
+else
+next, result := op(state);
+atomic
+state := next;
+slot num := slot num + 1;
+end atomic
+send(κ, response, cid, result );
+end if
+end function
+
+for ever
+switch receive()
+case request, p :
+propose(p);
+case decision, s, p :
+decisions := decisions ∪ { s, p };
+while ∃p : slot num, p ∈ decisions do
+if ∃p : slot num, p ∈ proposals ∧
+p = p then
+propose(p );
+end if
+perform(p );
+end while;
+end switch
+end for
+end process
