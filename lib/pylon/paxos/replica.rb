@@ -17,30 +17,123 @@
 # limitations under the License.
 #
 
+require_relative "../log"
 require_relative "../paxos"
 
 class Pylon
   module Paxos
     class Replica
+      # Let's create a memory-only, hash based Replica state machine
+      # ..it has a sequence of slots that should be filled with
+      # commands
+
+      # Invariants:
+      #
+      # R1: There are no two different commands decided
+      # for the same slot: ∀s, ρ1 , ρ2 , p1 , p2 : s, p1 ∈
+      # ρ1 .decisions ∧ s, p2 ∈ ρ2 .decisions ⇒ p1 = p2
+      #
+      # R2: All commands up to slot num are in the set of
+      # decisions: ∀ρ, s : 1 ≤ s < ρ.slot num ⇒
+      # (∃p : s, p ∈ ρ.decisions)
+      #
+      # R3: For all replicas ρ, ρ.state is the result of applying
+      # the operations in s, ps ∈ ρ.decisions for all s
+      # such that 1 ≤ s < slot num, in order of slot
+      # number, to initial state.
+      #
+      # R4: For each ρ, the variable ρ.slot num cannot de-
+      # crease over time.
+      #
+
+      include Celluloid
+
       @lock = Mutex.new
 
       attr_reader( :state,
-                   :proposals,
                    :slot_num,
+                   :proposals,
                    :decisions )
 
-      def initialize(leaders, initial_state)
-        @state = initial_state
+      def leaders
+        Timeout::timeout(10) do
+          ::DCell::Node.all.inject([]) do |nodes, node|
+            nodes << node if node.actors.include? :paxos_leader
+          end
+        end
+      end
+
+      def initialize
+        Pylon::Log.info "#{self}#initialize: starting up"
+
+        # Initial state
+        @state = {}
+
+        # This is like the state version
         @slot_num = 1
-        @proposals = 0
-        @decisions = 0
+        # proposals the replica has made in the past, slot number => command
+        @proposals = {}
+        # slots we have decided, also slot number => command
+        @decisions = {}
+
+        run!
       end
 
-      def propose(p)
-
+      def next_slot_num
+        @state.length + 1
       end
 
-      def perform(*args)
+      def propose( proposal )
+        seq = next_slot_num
+        unless decisions.has_key? proposal.to_sym
+
+          proposals[seq] = proposal
+
+          leaders.each do |leader|
+            leader[:paxos_leader].propose(seq, proposal)
+          end
+
+        end
+      end
+
+      # This is going to be a command, [k,cid,op]
+      def request( proposal )
+        propose proposal
+      end
+
+      # Make a decision about a command
+      def decision sequence, proposal
+        # Save this decision as seen, for playback
+        decisions[sequence] = proposal
+
+        while decision = decisions[slot_num] do
+          if proposals.has_value? proposal and proposals[proposal] == decision
+            # Re-propose the decision matching the current slot_num,
+            # giving it a new slot_num in the process
+            propose(decision)
+          end
+          # Run the proposal
+          perform(proposal)
+        end
+      end
+
+      # Perform a command
+      # Command has k,cid,op
+      def perform command
+        if decisions.has_value? command
+          # Increment the slot?
+          slot_num =+ 1
+        else
+          new_state = command[:op].call(state)
+          exclusive do
+            state = new_state
+            slot_num =+ 1
+          end
+          # We've calcualted our result, send it to the client
+          command[:k][:paxos_client].response( command[:cid],
+                                               new_state )
+        end
+
       end
 
     end
