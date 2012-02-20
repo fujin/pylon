@@ -69,7 +69,9 @@ class Pylon
       Pylon::Daemon.change_privilege
       Pylon::Daemon.daemonize "pylon" if Pylon::Config[:daemonize]
 
-      Pylon::Paxos.start
+      Pylon::DCell.new
+      Pylon::Paxos::Server.run!
+      Pylon::Paxos::Client.run!
     end
 
     def initialize

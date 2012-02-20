@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require_relative "mixin/convert_to_class_name"
 
 class Pylon
   class Command

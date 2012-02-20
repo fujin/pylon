@@ -37,6 +37,8 @@ describe Pylon::Application do
       Pylon::Config.stub!(:merge!).and_return(true)
       @app.stub!(:configure_logging).and_return(true)
       Pylon::DCell.stub!(:new).and_return(true)
+      Pylon::Paxos::Server.stub!(:run!).and_return(true)
+      Pylon::Paxos::Client.stub!(:run!).and_return(true)
     end
 
     it "should parse options" do
@@ -75,6 +77,22 @@ describe Pylon::Application do
         @app.run
       end
     end
+
+    it "should start dcell" do
+      Pylon::DCell.should_receive(:new).and_return(true)
+      @app.run
+    end
+
+    it "should start a paxos server" do
+      Pylon::Paxos::Server.should_receive(:run!).and_return(true)
+      @app.run
+    end
+
+    it "should start a paxos client" do
+      Pylon::Paxos::Client.should_receive(:run!).and_return(true)
+      @app.run
+    end
+
   end
 
   describe "configure_logging" do
