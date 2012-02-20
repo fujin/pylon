@@ -38,8 +38,7 @@ Gem::Specification.new do |s|
         "mixlib-log" => "~> 1.3.0",
         "mixlib-cli" => "~> 1.2.2",
         "mixlib-config" => "~> 1.1.2",
-        "uuidtools" => "~> 2.1.2",
-        "dcell" => "~> 0.8.0",
+        "uuidtools" => "~> 2.1.2"
       }.each do |gem, version|
         s.add_runtime_dependency(gem, [version])
       end

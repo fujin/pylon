@@ -6,5 +6,7 @@ group :test do
   gem "guard-rspec"
 end
 
+gem "dcell", :git => "git://github.com/fujin/dcell.git", :branch => "feature/moneta"
+
 # Specify your gem's dependencies in pylon.gemspec
 gemspec
