@@ -22,7 +22,7 @@ require_relative "../paxos"
 
 class Pylon
   module Paxos
-    class Client
+    class ReplicaClient
       def cid
         UUIDTools::UUID.timestamp_create
       end
