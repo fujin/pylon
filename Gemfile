@@ -6,7 +6,8 @@ group :test do
   gem "guard-rspec"
 end
 
-gem "dcell", :git => "git://github.com/fujin/dcell.git", :branch => "feature/moneta"
+# gem "dcell", :git => "git://github.com/fujin/dcell.git", :branch => "feature/moneta"
+gem "dcell", :git => "git://github.com/tarcieri/dcell.git"
 gem "celluloid", :git => "git://github.com/tarcieri/celluloid.git"
 gem "celluloid-io", :git => "git://github.com/tarcieri/celluloid-io.git"
 
