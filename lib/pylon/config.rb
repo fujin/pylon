@@ -63,10 +63,7 @@ class Pylon
 
     dcell_id nil
     dcell_addr "tcp://0.0.0.0:13337"
-    dcell_registry_adapter "redis"
-    dcell_registry_server "localhost"
-    dcell_registry_port 6379
-    dcell_registry_password nil # only used for redis adapter
+    dcell_registry_adapter "moneta"
 
   end # Config
 end # Pylon

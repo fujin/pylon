@@ -72,12 +72,12 @@ class Pylon
     def options
       Pylon::Config[:dcell_id] ||= UUIDTools::UUID.timestamp_create
 
-      {:id => Pylon::Config[:dcell_id], :addr => Pylon::Config[:dcell_addr],
-        :registry => {
-          :adapter => Pylon::Config[:dcell_registry_adapter],
-          :server => Pylon::Config[:dcell_registry_server],
-          :port => Pylon::Config[:dcell_registry_port],
-          :password => Pylon::Config[:dcell_registry_password]
+      {"id" => Pylon::Config[:dcell_id], "addr" => Pylon::Config[:dcell_addr],
+        "registry" => {
+          "adapter" => Pylon::Config[:dcell_registry_adapter],
+          "server" => Pylon::Config[:dcell_registry_server],
+          "port" => Pylon::Config[:dcell_registry_port],
+          "password" => Pylon::Config[:dcell_registry_password]
         }.reject! { |k,v| v.nil? } }
     end
 
@@ -102,7 +102,7 @@ class Pylon
       Class.new(Celluloid::Group) do
         supervise TimeClient, :as => :time_client
         supervise ClusterStatus, :as => :cluster_status
-      end.run
+      end
 
     end
 

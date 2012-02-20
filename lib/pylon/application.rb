@@ -139,7 +139,8 @@ class Pylon
 
     option :dcell_registry_adapter,
     :long => "--dcell-registry-adapter DCELL_REGISTRY_ADAPTER",
-    :description => "Which adapter DCell should use for its registry, either zk or redis"
+    :description => "Which adapter DCell should use for its registry, either zk or redis",
+    :required => true
 
     option :dcell_registry_server,
     :long => "--dcell-registry-server DCELL_REGISTRY_server",
