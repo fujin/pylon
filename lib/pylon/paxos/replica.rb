@@ -85,7 +85,7 @@ class Pylon
 
       def propose( proposal )
         seq = next_slot_num
-        unless decisions.has_key? proposal.to_sym
+        unless decisions.has_value? proposal
 
           proposals[seq] = proposal
 
@@ -101,15 +101,17 @@ class Pylon
         propose proposal
       end
 
-      # Make a decision about a command
+      # Make a decision about a proposal
       def decision sequence, proposal
-        # Save this decision as seen, for playback
+        # Save this decision as seen
         decisions[sequence] = proposal
 
+        # Wait for a decision to be made for the current slot_num,
+        # i.e., the state is up to date
         while decision = decisions[slot_num] do
-          if proposals.has_value? proposal and proposals[proposal] == decision
-            # Re-propose the decision matching the current slot_num,
-            # giving it a new slot_num in the process
+          # If we've already proposed a different decision, re-propose
+          # our decision while increasing the slot
+          if proposals.has_key? slot_num and proposal[slot_num] != decision
             propose(decision)
           end
           # Run the proposal
@@ -118,13 +120,20 @@ class Pylon
       end
 
       # Perform a command
-      # Command has k,cid,op
       def perform command
-        if decisions.has_value? command
-          # Increment the slot?
+        if decisions.detect do |slot,decision|
+            # If the stored decision has a lower slot than our current
+            # slot_num and is the same as the command being requested
+            slot < slot_num and command == decision
+          end
+          # We've already made our decision for this command
           slot_num =+ 1
         else
-          new_state = command[:op].call(state)
+          # Is it necessary to marshal dump the state for a deep copy
+          # here? state has to be updated exclusively
+          #
+          # new_state = command[:op].call(state)
+          new_state = command[:op].call(Marshal.load(Marshal.dump(state)))
           exclusive do
             state = new_state
             slot_num =+ 1
