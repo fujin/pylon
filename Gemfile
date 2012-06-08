@@ -1,5 +1,11 @@
 source "http://rubygems.org"
 
+group :test do
+  gem "rake"
+  gem "rspec"
+  gem "guard-rspec"
+end
+
 gem "yajl-ruby", :require => "yajl"
 gem "ohai"
 gem "dcell", :git => "git://github.com/celluloid/dcell.git"
