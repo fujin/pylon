@@ -7,16 +7,6 @@ GIT
       nio4r (>= 0.3.1)
 
 GIT
-  remote: git://github.com/celluloid/celluloid-zmq.git
-  revision: 8f2e5d2ae4c787d3b38e36e4108e8b9c55a8817f
-  specs:
-    celluloid-zmq (0.11.0)
-      celluloid (~> 0.11.0)
-      celluloid-io (~> 0.11.0)
-      ffi
-      ffi-rzmq
-
-GIT
   remote: git://github.com/celluloid/celluloid.git
   revision: 5bcf7c9017f482636d80fb26b56810ba3b681f39
   specs:
@@ -42,6 +32,17 @@ GIT
       celluloid-io (>= 0.8.0)
       http (>= 0.2.0)
       http_parser.rb (>= 0.5.3)
+
+GIT
+  remote: git://github.com/fujin/celluloid-zmq.git
+  revision: e8e40799f95513e4f834efe7a360b8dc000ab033
+  branch: feature/writeablesocket-messages-array-revert-bug
+  specs:
+    celluloid-zmq (0.11.0)
+      celluloid (~> 0.11.0)
+      celluloid-io (~> 0.11.0)
+      ffi
+      ffi-rzmq
 
 GEM
   remote: http://rubygems.org/

@@ -98,7 +98,7 @@ module Pylon
         puts "celluloid actors: #{celluloid_actors.map(&:to_s)}"
         puts "dcell global keys: #{global.inspect}"
         puts "dcell directory: #{directory.inspect}"
-        puts "dcell nodes: #{nodes}"
+        puts "dcell nodes: #{nodes.inspect}"
         sleep 10
       end
     end
