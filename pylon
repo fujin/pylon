@@ -99,6 +99,14 @@ module Pylon
         puts "dcell global keys: #{global.inspect}"
         puts "dcell directory: #{directory.inspect}"
         puts "dcell nodes: #{nodes.inspect}"
+
+        nodes.each do |node|
+          puts "dcell node #{node} services: #{node.all}"
+          # This should just add one to the passed in value
+          response = node[:my_worker].add_one(rand(1000))
+          puts "remote my_worker/add_one call: #{response}"
+        end
+
         sleep 10
       end
     end
