@@ -1,0 +1,76 @@
+GIT
+  remote: git://github.com/celluloid/celluloid-io.git
+  revision: 8905707c55f535601ab3514277d7c8cd939d988a
+  specs:
+    celluloid-io (0.11.0)
+      celluloid (~> 0.11.0)
+      nio4r (>= 0.3.1)
+
+GIT
+  remote: git://github.com/celluloid/celluloid-zmq.git
+  revision: 8f2e5d2ae4c787d3b38e36e4108e8b9c55a8817f
+  specs:
+    celluloid-zmq (0.11.0)
+      celluloid (~> 0.11.0)
+      celluloid-io (~> 0.11.0)
+      ffi
+      ffi-rzmq
+
+GIT
+  remote: git://github.com/celluloid/celluloid.git
+  revision: 5bcf7c9017f482636d80fb26b56810ba3b681f39
+  specs:
+    celluloid (0.11.0)
+
+GIT
+  remote: git://github.com/celluloid/dcell.git
+  revision: 28aca3e92d957275f83f35d9dcdf60326b0ce68e
+  specs:
+    dcell (0.11.0)
+      celluloid (~> 0.11.0)
+      celluloid-zmq (~> 0.11.0)
+      moneta
+      redis
+      redis-namespace
+      reel (~> 0.0.1)
+
+GIT
+  remote: git://github.com/celluloid/reel.git
+  revision: 356da6ca806c1a49e57205300b31ddc2b5432ecf
+  specs:
+    reel (0.0.2)
+      celluloid-io (>= 0.8.0)
+      http (>= 0.2.0)
+      http_parser.rb (>= 0.5.3)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    certified (0.1.0)
+    ffi (1.0.11)
+    ffi (1.0.11-java)
+    ffi-rzmq (0.9.3)
+      ffi
+    http (0.2.0)
+      certified
+    http_parser.rb (0.5.3)
+    http_parser.rb (0.5.3-java)
+    moneta (0.6.0)
+    nio4r (0.3.3)
+    nio4r (0.3.3-java)
+    redis (3.0.1)
+    redis-namespace (1.2.0)
+      redis (~> 3.0.0)
+    yajl-ruby (1.1.0)
+
+PLATFORMS
+  java
+  ruby
+
+DEPENDENCIES
+  celluloid!
+  celluloid-io!
+  celluloid-zmq!
+  dcell!
+  reel!
+  yajl-ruby

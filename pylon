@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+require "bundler/setup"
+
+require "yajl/json_gem"
+require "dcell"
+require "dcell/explorer"
+require "celluloid"
+
+=begin
+module DCell
+  class InfoService
+    include Celluloid
+
+    attr_accessor :ohai
+
+    def require_plugin plugin
+      @ohai.require_plugin plugin
+    end
+
+    def all_plugins
+      @ohai.all_plugins
+    end
+
+    def initialize
+      @ohai = ::Ohai::System.new
+    end
+
+    def hint_directory
+      File.join("/etc","chef","ohai","hints")
+    end
+
+    def install_hint hint = "ec2.json"
+      hint_path = File.join(hint_directory, hint)
+      hint = File.open(hint_path, "w+") unless File.exists? hint_path
+    end
+
+  end
+end
+=end
+
+
+module Pylon
+  class Application
+    def config
+      json = File.open("pylon.json", "r").read
+      hash = JSON.parse(json, :symbolize_keys => true)
+      puts "config: hash #{hash}"
+      raise "config: need :id key" unless hash.has_key?(:id)
+      raise "config: need :addr key" unless hash.has_key?(:addr)
+    end
+
+    def initialize
+      DCell.start(config)
+    end
+  end
+end
+
+Pylon::Application.new
+
+class Test
+  include Celluloid
+  def initialize
+    puts "blah blah, doing work"
+    sleep 1
+  end
+end
+
+DCell::Global[:test_pool] = Test.pool
+
