@@ -4,27 +4,32 @@ require "rubygems"
 require "bundler/setup"
 
 require "yajl/json_gem"
+require "ohai"
 require "dcell"
 require "dcell/explorer"
 require "celluloid"
+require "celluloid/supervision_group"
 
-=begin
-module DCell
-  class InfoService
+module Pylon
+  class Ohai
     include Celluloid
 
-    attr_accessor :ohai
-
     def require_plugin plugin
-      @ohai.require_plugin plugin
+      ohai.require_plugin plugin
     end
 
     def all_plugins
-      @ohai.all_plugins
+      ohai.all_plugins
+    end
+
+    def ohai
+      @ohai ||= ::Ohai::System.new
     end
 
     def initialize
-      @ohai = ::Ohai::System.new
+      %w[ec2 rackspace].each do |undetectable_cloud|
+        install_hint undetectable_cloud + ".json"
+      end
     end
 
     def hint_directory
@@ -33,39 +38,86 @@ module DCell
 
     def install_hint hint = "ec2.json"
       hint_path = File.join(hint_directory, hint)
-      hint = File.open(hint_path, "w+") unless File.exists? hint_path
+      puts "installing hint #{hint_path}"
+      # File.mkdir_p(hint_path)
+      # hint = File.open(hint_path, "w+") unless File.exists? hint_path
     end
 
   end
-end
-=end
 
+  class Config
+    include Celluloid
 
-module Pylon
-  class Application
-    def config
+    def parse
       json = File.open("pylon.json", "r").read
       hash = JSON.parse(json, :symbolize_keys => true)
-      puts "config: hash #{hash}"
       raise "config: need :id key" unless hash.has_key?(:id)
       raise "config: need :addr key" unless hash.has_key?(:addr)
+      hash
+    end
+
+  end
+
+  class MyWorker
+    include Celluloid
+    def add_one(number)
+      number + 1
+    end
+  end
+
+  class DCellServer
+    include Celluloid
+    def initialize
+      config = Celluloid::Actor[:config].parse
+      ::DCell.setup(config)
+      ::DCell.run!
+    end
+  end
+
+  class DCellTestClient
+    include Celluloid
+
+    def celluloid_actors
+      Celluloid::Actor.all
+    end
+
+    def global
+      DCell::Global.keys
+    end
+
+    def directory
+      DCell::Directory.all
+    end
+
+    def nodes
+      DCell::Node.all
+    end
+
+    def monitor
+      loop do
+        puts "celluloid actors: #{celluloid_actors.map(&:to_s)}"
+        puts "dcell global keys: #{global.inspect}"
+        puts "dcell directory: #{directory.inspect}"
+        puts "dcell nodes: #{nodes}"
+        sleep 10
+      end
     end
 
     def initialize
-      DCell.start(config)
+      puts "dcell test client running"
+      monitor
     end
+
   end
+
 end
 
-Pylon::Application.new
-
-class Test
-  include Celluloid
-  def initialize
-    puts "blah blah, doing work"
-    sleep 1
-  end
+class Application < Celluloid::SupervisionGroup
+  supervise Pylon::Config, :as => :config
+  # supervise Pylon::Ohai, :as => :ohai
+  supervise Pylon::MyWorker, :as => :my_worker
+  supervise Pylon::DCellServer, :as => :dcell_server
+  supervise Pylon::DCellTestClient, :as => :dcell_test_client
 end
 
-DCell::Global[:test_pool] = Test.pool
-
+Application.run!

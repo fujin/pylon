@@ -1,4 +1,11 @@
 {
   "id": "test",
-  "addr": "tcp://0.0.0.0:22202"
+  "addr": "tcp://127.0.0.1:22202",
+  "registry": {
+    "adapter": "gossip"
+  },
+  "directory": {
+    "id": "test",
+    "addr": "tcp://127.0.0.1:22202"
+  }
 }
